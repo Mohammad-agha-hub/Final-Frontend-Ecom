@@ -1,4 +1,4 @@
-// app/components/Banner.tsx — no "use client"
+
 import FirstBanner from "./FirstBanner";
 import SecondBanner from "./SecondBanner";
 import ThirdBanner from "./ThirdBanner";
