@@ -1,0 +1,120 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
+import Image from "next/image";
+import { AllProducts } from "../utilities/ClothesData";
+import { Product } from "../utilities/types";
+import { useSidebarStore } from "@/utils/SidebarStore";
+
+const SearchSidebar = () => {
+  const { openSidebar, closeSidebar } = useSidebarStore();
+  const isOpen = openSidebar === "search";
+
+  const [search, setSearch] = useState("");
+  const [filteredItems, setFilteredItems] = useState<Product[]>([]);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Filter products on search change
+  useEffect(() => {
+    const filtered = AllProducts.filter((product) =>
+      product.name.toLowerCase().includes(search.toLowerCase())
+    );
+    setFilteredItems(filtered);
+  }, [search]);
+
+  // Close sidebar on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(e.target as Node)
+      ) {
+        closeSidebar();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, closeSidebar]);
+
+  return (
+    <>
+      {/* Sidebar Panel */}
+      <div
+        ref={sidebarRef}
+        className={`fixed top-0 right-0 w-[85%] max-w-[380px] bg-white z-50 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } shadow-xl overflow-y-auto touch-auto overscroll-contain`}
+        style={{ height: "calc(var(--vh, 1vh) * 100)" }}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center px-4 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold">Search</h2>
+          <X onClick={closeSidebar} size={22} className="cursor-pointer" />
+        </div>
+
+        {/* Body */}
+        <div className="px-4 pt-4 space-y-5 h-[calc(100%-64px)] flex flex-col">
+          {/* Search Input */}
+          <input
+            type="text"
+            placeholder="Search items..."
+            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <h1 className="w-full font-semibold pl-3 py-2 border-y border-gray-200 text-[#222] shadow-[0_3px_10px_#81818133]">
+            Search Results
+          </h1>
+
+          {/* Results */}
+          <div
+            className="flex flex-col overflow-y-auto space-y-4 scrollbar-thin"
+            style={{ maxHeight: "calc(var(--vh, 1vh) * 100 - 220px)" }}
+          >
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item, i) => (
+                <div key={i} className="flex items-center gap-3 border-b pb-3">
+                  <Image
+                    src={item.image[0]}
+                    alt={item.name}
+                    width={57}
+                    height={42}
+                    className="object-cover rounded-md"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-gray-500">RS {item.price}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">No items found.</p>
+            )}
+          </div>
+
+          <h1 className="font-semibold text-[#222] px-5 py-2 border-b border-gray-200 shadow-[0_3px_10px_#81818133]">
+            {search ? `Search For "${search}"` : "Start typing to search..."}
+          </h1>
+        </div>
+      </div>
+
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+          isOpen
+            ? "opacity-30 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        onClick={closeSidebar}
+      />
+    </>
+  );
+};
+
+export default SearchSidebar;
