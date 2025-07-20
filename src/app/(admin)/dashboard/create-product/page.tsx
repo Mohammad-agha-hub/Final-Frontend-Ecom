@@ -5,7 +5,6 @@ import { FiUpload, FiX, FiChevronDown, FiCheck } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-
 interface Category {
   id: string;
   name: string;
@@ -22,7 +21,6 @@ interface Tag {
   name: string;
   children?: Subtag[]; // 👈 important
 }
-
 
 interface Variant {
   id: string;
@@ -56,7 +54,7 @@ export default function CreateProductForm() {
   >({});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  
+
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
   const [formData, setFormData] = useState<ProductFormData>({
@@ -116,7 +114,7 @@ export default function CreateProductForm() {
 
     if (session?.user) fetchData();
   }, [session]);
-  
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -136,7 +134,6 @@ export default function CreateProductForm() {
     const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
-  
 
   const handleTagToggle = (tagId: string) => {
     setSelectedTags((prev) =>
@@ -510,7 +507,6 @@ export default function CreateProductForm() {
                     multiple
                     onChange={handleImageChange}
                     className="hidden"
-                  
                     disabled={loading}
                   />
                 </label>
@@ -530,6 +526,8 @@ export default function CreateProductForm() {
                     <Image
                       src={src}
                       alt={`Preview ${idx}`}
+                      width={50}
+                      height={50}
                       className="w-full h-40 object-cover"
                     />
                     <button

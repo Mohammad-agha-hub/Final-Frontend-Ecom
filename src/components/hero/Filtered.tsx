@@ -10,12 +10,13 @@ interface Product {
 
 async function fetchProducts(): Promise<Product[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?limit=20&page=1`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
     {
       next: { revalidate: 3600 },
     }
   );
   const data = await res.json();
+  console.log(data)
   return Array.isArray(data) ? data : data.products || [];
 }
 

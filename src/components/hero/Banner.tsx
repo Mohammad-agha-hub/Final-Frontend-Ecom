@@ -1,8 +1,7 @@
-
 import FirstBanner from "./FirstBanner";
+import FourthBanner from "./FourthBanner";
 import SecondBanner from "./SecondBanner";
 import ThirdBanner from "./ThirdBanner";
-import FourthBanner from "./FourthBanner";
 
 interface Banner {
   id: string;
@@ -16,19 +15,19 @@ interface Banner {
 }
 
 const getBanners = async (): Promise<Banner[]> => {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos`,
-    {
-      next: { revalidate: 3600 },
-    }
-  );
+  // Fetch banners from the API
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos`);
   const data = await res.json();
-  return (data as Banner[]).filter((b: Banner) => b.active).sort((a, b) => a.position - b.position);
+  return (data as Banner[])
+    .filter((b) => b.active)
+    .sort((a, b) => a.position - b.position);
 };
 
 const Banner = async () => {
+  // Fetch banners
   const banners = await getBanners();
 
+  // Function to fetch the banner by position
   const getBanner = (pos: number) => banners.find((b) => b.position === pos);
 
   return (
