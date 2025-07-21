@@ -1,25 +1,84 @@
 "use client";
 
+import React, { useMemo, useState } from "react";
 import { Heart } from "lucide-react";
-import React, { useState } from "react";
 import { useWishlistStore } from "@/utils/WishlistStore";
 import { useSelectedOptionsStore } from "@/utils/SizeStore";
-import { Product } from "../utilities/types";
-
-const sizes = ["Small", "Medium", "Large"];
-const colors = ["Red", "Blue", "Green"]; // You can extract from product.variants later
+import { Product, VariantCombination, Variant } from "../utilities/types";
 
 const CustomizeProducts = ({ product }: { product: Product }) => {
   const [wished, setWished] = useState(false);
-  const { selectedSize, selectedColor, setSelectedSize, setSelectedColor } =
-    useSelectedOptionsStore();
+  const {
+    selectedColor,
+    selectedSize,
+    setSelectedColor,
+    setSelectedSize,
+    setCombination,
+  } = useSelectedOptionsStore();
 
-const addToWishlist = useWishlistStore((state) => state.addToWishlist);
+  const addToWishlist = useWishlistStore((state) => state.addToWishlist);
   const removeFromWishlist = useWishlistStore(
     (state) => state.removeFromWishlist
   );
 
-const handleWishlist = () => {
+  const predefinedSizes = ["XS", "S", "M", "L", "XL"];
+
+  const comboMap = useMemo(() => {
+    const map: Record<string, Record<string, VariantCombination>> = {};
+    const variantCombinations = product.variantCombinations;
+
+    if (!Array.isArray(variantCombinations)) return map;
+
+    variantCombinations.forEach((combo: VariantCombination) => {
+      const color = combo.variants.find(
+        (v: Variant) => v.variant.key === "Color"
+      )?.variant.value;
+      const size = combo.variants.find((v: Variant) => v.variant.key === "Size")
+        ?.variant.value;
+
+      if (!color || !size) return;
+
+      if (!map[color]) map[color] = {};
+      map[color][size] = combo;
+    });
+
+    return map;
+  }, [product]);
+
+  const availableColors = useMemo(() => {
+    if (!selectedSize) return Object.keys(comboMap);
+    return Object.keys(comboMap).filter(
+      (color) => comboMap[color][selectedSize]
+    );
+  }, [comboMap, selectedSize]);
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+
+    // If current selected size is available in the new color
+    if (comboMap[color]?.[selectedSize]) {
+      const combo = comboMap[color][selectedSize];
+      if (combo) {setCombination(combo)}
+      else{setCombination(null)};
+    } else {
+      // Reset size + combo if not available
+      setSelectedSize("");
+      setCombination(null);
+    }
+  };
+
+  const handleSizeSelect = (size: string) => {
+    if (!selectedColor) return;
+    setSelectedSize(size);
+    const combo = comboMap[selectedColor]?.[size];
+    if (combo){ setCombination(combo)}
+    else{
+      setCombination(null)
+    }
+      ;
+  };
+
+  const handleWishlist = () => {
     if (wished) {
       removeFromWishlist(product.id);
     } else {
@@ -30,27 +89,35 @@ const handleWishlist = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Size Selector */}
+      {/* Color Selector */}
       <div className="flex flex-col gap-2">
         <h4 className="font-medium">Choose a Color</h4>
         <div className="flex gap-3">
-          {colors.map((color) => (
-            <div
-              key={color}
-              onClick={() => setSelectedColor(color)}
-              className={`
-          w-8 h-8 rounded-full cursor-pointer ring-2 transition
-          ${
-            selectedColor === color
-              ? "ring-orange-400 scale-110"
-              : "ring-transparent hover:ring-orange-200"
-          }
-        `}
-              style={{ backgroundColor: color }}
-            />
-          ))}
+          {availableColors.map((color) => {
+            const isWhite = color.toLowerCase() === "white";
+            return (
+              <div
+                key={color}
+                onClick={() => handleColorSelect(color)}
+                className={`
+                  w-8 h-8 rounded-full cursor-pointer ring-2 transition
+                  ${
+                    selectedColor === color
+                      ? "ring-orange-400 scale-110"
+                      : "ring-transparent hover:ring-orange-200"
+                  }
+                `}
+                style={{
+                  backgroundColor: color.toLowerCase(),
+                  border: isWhite ? "1px solid orange" : "none",
+                }}
+              />
+            );
+          })}
         </div>
       </div>
+
+      {/* Size Selector Title + Wishlist */}
       <div className="flex justify-between items-center gap-2">
         <h4 className="font-medium">Choose a Size</h4>
         <div
@@ -68,25 +135,38 @@ const handleWishlist = () => {
         </div>
       </div>
 
+      {/* Sizes */}
       <ul className="flex justify-between items-center gap-3">
         <div className="flex gap-3">
-          {sizes.map((size) => (
-            <li
-              key={size}
-              onClick={() => setSelectedSize(size)}
-              className={`py-1.5 px-4 text-sm rounded-md cursor-pointer transition ${
-                size === "Large"
-                  ? "bg-orange-200 text-white opacity-70 cursor-not-allowed"
-                  : selectedSize === size
-                  ? "bg-orange-400 text-white ring-1 ring-orange-400"
-                  : "ring-1 ring-orange-400 text-orange-400 hover:bg-orange-50"
-              }`}
-            >
-              {size}
-            </li>
-          ))}
+          {predefinedSizes.map((size) => {
+            const isAvailable =
+              selectedColor && comboMap[selectedColor]?.[size];
+            const isSelected = selectedSize === size;
+            const isDisabled = selectedColor && !isAvailable;
+
+            return (
+              <li
+                key={size}
+                onClick={() => !isDisabled && handleSizeSelect(size)}
+                className={`
+                  w-10 h-10 flex items-center justify-center text-sm font-medium 
+                  rounded-full cursor-pointer transition select-none
+                  ${
+                    isDisabled
+                      ? "bg-gray-200 text-gray-500 line-through cursor-not-allowed"
+                      : isSelected
+                      ? "bg-black text-white ring-2 ring-orange-400"
+                      : "text-gray-500 ring-1 ring-gray-400 hover:text-gray-800 hover:ring-gray-800"
+                  }
+                `}
+              >
+                {size}
+              </li>
+            );
+          })}
         </div>
 
+        {/* Second Wishlist Button */}
         <div
           onClick={handleWishlist}
           className="page-sec-wished flex items-center gap-2 cursor-pointer group"
@@ -101,8 +181,6 @@ const handleWishlist = () => {
           />
         </div>
       </ul>
-
-      
     </div>
   );
 };

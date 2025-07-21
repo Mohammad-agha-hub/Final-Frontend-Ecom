@@ -17,12 +17,14 @@ export default function CartSidebar() {
   const token = session?.user?.backendToken;
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const { items, fetchCart, updateItem, removeItem } = useCartStore();
+  const { items, fetchCart, updateItem, removeItem, syncCart } = useCartStore();
 
-  const totalPrice = items.reduce(
-    (total, item) => total + +item.product.price * item.quantity,
-    0
-  );
+  const totalPrice = items.reduce((total, item) => {
+    const discountedPrice = Math.round(
+      item.product.price - item.product.price * (item.product.discount / 100)
+    );
+    return total + discountedPrice * item.quantity;
+  }, 0);
 
   // Fetch cart on open
   useEffect(() => {
@@ -52,11 +54,12 @@ export default function CartSidebar() {
 
   const router = useRouter();
 
-  const handleClick = () => {
-    router.push("/checkout");
+  const handleCheckoutClick = async () => {
+    if (token) await syncCart(token); // optional sync
     closeSidebar();
+    router.push("/checkout");
   };
-
+  
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Backdrop */}
@@ -107,26 +110,31 @@ export default function CartSidebar() {
                   <div className="flex justify-between">
                     <span className="font-medium">{item.product.name}</span>
                     <span className="font-semibold">
-                      Rs {item.product.price.toLocaleString()}
+                      Rs{" "}
+                      {Math.round(
+                        item.product.price -
+                          item.product.price * (item.product.discount / 100)
+                      ).toLocaleString()}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-600 mt-1">
-                    Size: Medium
-                  </span>
+
+                  {/* Display selected size and color */}
+                  <div className="text-sm text-gray-600 mt-1">
+                    Size:{" "}
+                    <span className="font-medium text-black">{item.size}</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Color:{" "}
+                    <span className="font-medium text-black">{item.color}</span>
+                  </div>
 
                   <div className="flex items-center mt-2 gap-3">
                     <div className="flex items-center border rounded overflow-hidden">
                       <button
                         onClick={() =>
-                          token &&
-                          updateItem(
-                            item.id,
-                            item.quantity - 1,
-                            token,
-                            
-                          )
+                          token && updateItem(item.id, item.quantity - 1, token)
                         }
-                        className="px-2 py-1 text-lg cursor-pointer font-medium hover:bg-gray-100"
+                        className="px-2 py-1 text-lg font-medium hover:bg-gray-100"
                         disabled={item.quantity <= 1}
                       >
                         −
@@ -134,25 +142,17 @@ export default function CartSidebar() {
                       <span className="px-3">{item.quantity}</span>
                       <button
                         onClick={() =>
-                          token &&
-                          updateItem(
-                            item.id,
-                            item.quantity + 1,
-                            token,
-                            
-                          )
+                          token && updateItem(item.id, item.quantity + 1, token)
                         }
-                        className="px-2 py-1 text-lg cursor-pointer font-medium hover:bg-gray-100 disabled:opacity-40"
-                        disabled={item.quantity >= item.stock}
+                        className="px-2 py-1 text-lg font-medium hover:bg-gray-100 disabled:opacity-40"
+                        disabled={item.quantity >= (item.variant?.stock ?? 0)}
                       >
                         +
                       </button>
                     </div>
                     <button
-                      onClick={() =>
-                        token && removeItem(item.id, token)
-                      }
-                      className="text-red-600 cursor-pointer text-sm ml-auto hover:underline"
+                      onClick={() => token && removeItem(item.id, token)}
+                      className="text-red-600 text-sm ml-auto hover:underline"
                     >
                       Remove
                     </button>
@@ -164,7 +164,7 @@ export default function CartSidebar() {
         </div>
 
         {items.length > 0 && (
-          <div onClick={handleClick} className="border-t px-4 py-4">
+          <div onClick={handleCheckoutClick} className="border-t px-4 py-4">
             <button className="w-full flex justify-center items-center gap-2 bg-black text-white py-3 rounded-md hover:bg-gray-800 transition cursor-pointer">
               <span className="text-base font-medium">Checkout</span>
               <span className="text-xl leading-none">•</span>

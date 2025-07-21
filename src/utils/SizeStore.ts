@@ -1,18 +1,28 @@
-// utils/SizeStore.ts
-import { create } from "zustand";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { VariantCombination } from '@/components/utilities/types';
 
 interface SelectedOptionsState {
-  selectedSize: string | null;
-  selectedColor: string | null;
-  setSelectedSize: (size: string) => void;
+  selectedColor: string;
+  selectedSize: string;
+  combination: VariantCombination | null;
   setSelectedColor: (color: string) => void;
-  clearSelections: () => void;
+  setSelectedSize: (size: string) => void;
+  setCombination: (combo: VariantCombination | null) => void;
 }
 
-export const useSelectedOptionsStore = create<SelectedOptionsState>((set) => ({
-  selectedSize: null,
-  selectedColor: null,
-  setSelectedSize: (size) => set({ selectedSize: size }),
-  setSelectedColor: (color) => set({ selectedColor: color }),
-  clearSelections: () => set({ selectedSize: null, selectedColor: null }),
-}));
+export const useSelectedOptionsStore = create<SelectedOptionsState>()(
+  persist(
+    (set) => ({
+      selectedColor: '',
+      selectedSize: '',
+      combination: null,
+      setSelectedColor: (color) => set({ selectedColor: color }),
+      setSelectedSize: (size) => set({ selectedSize: size }),
+      setCombination: (combination) => set({ combination }),
+    }),
+    {
+      name: 'selected-options-storage',
+    }
+  )
+);

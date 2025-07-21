@@ -18,8 +18,7 @@ interface Category {
     const [editValue, setEditValue] = useState("");
     const [loading, setLoading] = useState(false);
     const { data:session } = useSession();
-    console.log(session?.user)
-  
+   
   
     const fetchCategories = useCallback(async () => {
       try {

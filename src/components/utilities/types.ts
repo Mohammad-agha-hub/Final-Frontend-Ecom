@@ -5,16 +5,32 @@ export interface Product {
   category: string;
   description?: string;
   price: number;
-  image: string[]; // <-- FIXED
+  image: string[];
   stock: number;
   discount: number;
-  createdAt: string; // <-- ensure it's string if coming from JSON
-  images?: { url: string; id: string }[]; // optional
+  createdAt: string;
+  images?: { url: string; id: string }[];
   color?: string;
   size: string;
-  type: string;
-  brand: string;
-  subcategory: string;
-  childCategory: string;
-  pieces: number;
+  variantCombinations: VariantCombination[]; // changed from string[] to proper type
+}
+
+
+export interface Variant {
+  variant: {
+    key: string;
+    value: string;
+  };
+}
+
+export interface VariantCombination {
+  id: string;
+  productId: string;
+  variants: Variant[];
+  size: string;
+  color: string;
+  stock: number;
+  price: number;
+  sku?: string;
+  image?: string;
 }
