@@ -32,7 +32,10 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
         className="relative w-[50%] md:w-[25%] aspect-[3/3] md:aspect-[7/3] cursor-pointer"
       >
         <Image
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${left.imageUrl}`}
+          src={
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}${left.imageUrl}` ||
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020389883-cloth11a.png`
+          }
           alt={left.title}
           fill
           className="object-cover"
@@ -48,7 +51,10 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
         className="relative w-[50%] md:w-[75%] aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${right.imageUrl}`}
+          src={
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}${right.imageUrl}` ||
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020411392-banner.png`
+          }
           alt={right.title}
           fill
           className="object-cover"

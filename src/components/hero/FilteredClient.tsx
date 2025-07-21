@@ -13,7 +13,8 @@ interface Product {
   id: string;
   name: string;
   slug: string;
-  image: string[];
+  images: string[];
+  image:string
 }
 
 const LIMIT = 20;
@@ -66,7 +67,7 @@ export default function ClientSlider({
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?limit=${LIMIT}&page=${newPage}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`
       );
       const data = await res.json();
       const newProducts = Array.isArray(data) ? data : data.products || [];
@@ -103,11 +104,7 @@ export default function ClientSlider({
           >
             <div className="w-[200px] h-[260px] flex items-center justify-center overflow-hidden bg-white">
               <Image
-                src={
-                  product.image?.[0]?.startsWith("http")
-                    ? product.image[0]
-                    : `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`
-                }
+                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`}
                 alt={product.name}
                 width={180}
                 height={200}

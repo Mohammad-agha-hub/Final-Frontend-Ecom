@@ -13,7 +13,6 @@ export default function Home() {
       <div>
         <Category />
         <Filtered />
-        <h1>ANAMI ASTA</h1>
         <Banner />
       </div>
     </Suspense>

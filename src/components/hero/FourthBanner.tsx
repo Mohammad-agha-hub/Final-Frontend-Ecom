@@ -31,7 +31,10 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
         className="relative md:w-[70%] w-[50%] aspect-[3/4] md:aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${left.imageUrl}`}
+          src={
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}${left.imageUrl}` ||
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020438725-Sbanner3.png`
+          }
           alt={left.title}
           fill
           className="object-cover"
@@ -47,7 +50,10 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
         className="relative w-[50%] md:w-[30%] aspect-[3/3] md:aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${right.imageUrl}`}
+          src={
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}${right.imageUrl}` ||
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020450606-cloth1b.png`
+          }
           alt={right.title}
           fill
           className="object-cover object-top"

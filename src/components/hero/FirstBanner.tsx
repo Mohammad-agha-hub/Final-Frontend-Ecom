@@ -28,7 +28,10 @@ const FirstBanner = ({ banner }: FirstBannerProps) => {
     <div className="relative w-full overflow-hidden">
       <div className="w-full h-[85vh] md:h-[90vh] lg:h-[95vh] relative aspect-[16/9] md:aspect-[16/8] lg:aspect-[16/7]">
         <Image
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}`}
+          src={
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}` ||
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020301919-cloth8f.png`
+          }
           alt={banner.title}
           fill
           className="object-cover"

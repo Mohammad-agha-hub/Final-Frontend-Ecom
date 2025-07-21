@@ -2,20 +2,22 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['ecom-project-production.up.railway.app'],  // Add the domain here
+    domains: ['localhost'],
     remotePatterns: [
       {
-        protocol: "https",  // Ensure it's using https if your site is served over https
-        hostname: "ecom-project-production.up.railway.app",
-        pathname: "/uploads/**"  // Specify the path to your images
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/productImages/**", // Product images
       },
       {
-        protocol: "https",
-        hostname: "ecom-project-production.up.railway.app", // Add production URL
-        pathname: "/uploads/banners/**", // Path for banner images
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/banners/**", // Banner images
       },
-    ]
-  }
+    ],
+  },
 };
 
 export default nextConfig;

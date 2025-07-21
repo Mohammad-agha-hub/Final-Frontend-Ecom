@@ -5,7 +5,8 @@ interface Product {
   id: string;
   name: string;
   slug: string;
-  image: string[];
+  images: string[];
+  image:string
 }
 
 async function fetchProducts(): Promise<Product[]> {
@@ -16,7 +17,6 @@ async function fetchProducts(): Promise<Product[]> {
     }
   );
   const data = await res.json();
-  console.log(data)
   return Array.isArray(data) ? data : data.products || [];
 }
 
