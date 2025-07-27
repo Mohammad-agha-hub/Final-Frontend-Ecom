@@ -8,10 +8,9 @@ interface Product {
   images: string[];
   image:string
 }
-// `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=1&limit=20`;
 async function fetchProducts(): Promise<Product[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=1&limit=20`,
     {
       cache: "no-store",
     }
