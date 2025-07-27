@@ -16,8 +16,8 @@ interface Banner {
 
 const getBanners = async (): Promise<Banner[]> => {
   // Fetch banners from the API
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos`,{
-    next:{revalidate:300}
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos`, {
+    cache: "no-store",
   });
   const data = await res.json();
   return (data as Banner[])

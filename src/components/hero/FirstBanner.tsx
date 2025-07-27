@@ -23,10 +23,11 @@ const FirstBanner = ({ banner }: FirstBannerProps) => {
   const router = useRouter();
 
   if (!banner) return null;
+  
   const imageUrl = banner.imageUrl
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}`
   : `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/default.png`;
-
+console.log(imageUrl)
   return (
     <div className="relative w-full overflow-hidden">
       <div className="w-full h-[85vh] md:h-[90vh] lg:h-[95vh] relative aspect-[16/9] md:aspect-[16/8] lg:aspect-[16/7]">

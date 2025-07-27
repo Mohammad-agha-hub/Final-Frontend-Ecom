@@ -11,10 +11,10 @@ export default async function CategoryMenu() {
   
     const [categoryRes, tagRes] = await Promise.all([
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`, {
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
       }),
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags`, {
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
       }),
     ]);
 
