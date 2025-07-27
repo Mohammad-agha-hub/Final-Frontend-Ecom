@@ -3,20 +3,6 @@ import CustomizeProucts from "@/components/product/CustomizeProucts";
 import Add from "@/components/product/Add";
 import { Product } from "@/components/utilities/types";
 
-export async function generateStaticParams(){
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,{
-    next:{revalidate:60}
-  })
-  if(!res.ok){
-    console.error('Failed to fetch products for static params')
-    return[]
-  }
-  const data = await res.json()
-  return data.products.map((product:{slug:string})=>({
-    slug:product.slug
-  }))
-}
-
 // Fetch product(s) by slug
 async function fetchProducts(slug: string): Promise<Product|null> {
   try {
