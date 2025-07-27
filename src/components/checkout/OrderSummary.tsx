@@ -1,59 +1,22 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useCartStore } from '@/utils/CartStore';
 
-  interface Product{
-    id:string;
-    name:string;
-    slug:string;
-    price:number;
-    image:string
-  }
-  interface CartItem{
-    id:string;
-    productId:string;
-    combinationId:string;
-    color:string;
-    size:string;
-    quantity:number;
-    product:Product
-  }
-const OrderSummary = () => {
   
-  const {data:session} = useSession()
-  const token = session?.user.backendToken
-  const [cartItems,setCartItems] = useState<CartItem[]>([])
+interface OrderSummaryProps{
+    onCouponApplied?:(code:string,amount:number)=>void
+  }
+const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
+  
   const [couponCode,setCouponCode] = useState('')
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
 
-  const fetchItems = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await res.json();
-      setCartItems(data.cart.items)
-    } catch (error) {
-      
-    }
-    
-  };
-  
-  useEffect(()=>{ 
-    if(token){
-      fetchItems();
-    }
-  },[token])
- 
-  const subtotal = cartItems.reduce((sum, item) => {
+  const {items} = useCartStore() 
+
+  const subtotal = items.reduce((sum, item) => {
     const discount = item.product.discount || 0;
     const discountedPrice =
       item.product.price - item.product.price * (discount / 100);
@@ -80,6 +43,7 @@ const OrderSummary = () => {
       if(!data.success){
         setCouponError(data.message || 'Invalid Coupon')
         setDiscountAmount(0)
+        if(onCouponApplied)onCouponApplied("",0)
         return;
       }
       const {discount,type} = data.coupon;
@@ -90,11 +54,16 @@ const OrderSummary = () => {
       else if(type==='FIXED'){
         calculatedDiscount = discount
       }
-      setDiscountAmount(Math.min(calculatedDiscount,subtotal))
+    const finalDiscount = Math.min(calculatedDiscount,subtotal)
+    setDiscountAmount(finalDiscount)
       setCouponError('')
+      if(onCouponApplied){
+        onCouponApplied(couponCode,finalDiscount)
+      }
     } catch (error) {
       console.error('coupon error',error)
       setCouponError('Failed to apply coupon')
+      if(onCouponApplied) onCouponApplied('',0)
     }
     }
   
@@ -104,7 +73,7 @@ const OrderSummary = () => {
       <h2 className="text-xl font-semibold mb-4">Your Order</h2>
 
       {/* Cart Items */}
-      {cartItems.map((item) => (
+      {items.map((item) => (
         <div
           key={item.id}
           className="flex gap-4 relative border rounded p-4 bg-white"
@@ -132,7 +101,7 @@ const OrderSummary = () => {
                 Rs{" "}
                 {Math.round(
                   item.product.price -
-                    item.product.price * (item.product.discount / 100)
+                    item.product.price * ((item.product.discount??0) / 100)
                 ).toLocaleString()}
               </span>
             </div>
@@ -140,7 +109,7 @@ const OrderSummary = () => {
               Rs{" "}
               {Math.round(
                 item.product.price -
-                  item.product.price * (item.product.discount / 100)
+                  item.product.price * ((item.product.discount??0) / 100)
               ).toLocaleString()}
             </div>
           </div>
@@ -176,7 +145,7 @@ const OrderSummary = () => {
         <div className="flex justify-between">
           <span>Items</span>
           <span>
-            {cartItems.reduce((count, item) => count + item.quantity, 0)}
+            {items.reduce((count, item) => count + item.quantity, 0)}
           </span>
         </div>
         <div className="flex justify-between">

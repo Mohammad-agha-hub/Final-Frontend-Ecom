@@ -12,12 +12,7 @@ const filtersData = [
     options: ["3000-6000", "6001-9000", "9000+"],
   },
   { key: "color", label: "By Color", options: ["Yellow", "Purple", "Silver","White"] },
-  {
-    key: "type",
-    label: "By Type",
-    options: ["Embroidered", "Printed", "Plain"],
-  },
-  { key: "pieces", label: "By Pieces", options: ["2 Piece", "3 Piece"] },
+  
   { key: "size", label: "By Size", options: ["S", "M", "L"] },
 ];
 

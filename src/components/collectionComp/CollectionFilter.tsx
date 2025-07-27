@@ -8,7 +8,10 @@ const CollectionSidebar = dynamic(() => import("./CollectionSidebar"), {
 });
 import { useFilterStore } from '@/utils/FilterStore';
 import dynamic from "next/dynamic";
-const CollectionFiltered = ({collection}:{collection:string}) => {
+import { Product } from '../utilities/types'; 
+
+
+const CollectionFiltered = ({items}:{items:Product[]}) => {
   const [sortOpen, setSortOpen] = useState(false);
   const [columns, setColumns] = useState(2);
   const [openSidebar,setOpenSidebar] = useState(false)
@@ -76,13 +79,13 @@ const CollectionFiltered = ({collection}:{collection:string}) => {
         <div className="relative">
           <button
             onClick={() => setSortOpen(!sortOpen)}
-            className="flex items-center gap-1 border px-5 cursor-pointer py-2 rounded text-sm hover:bg-gray-100 transition"
+            className="flex items-center gap-1 border px-3 sm:px-4 cursor-pointer py-2 rounded text-sm hover:bg-gray-100 transition"
           >
             {currentSort}
             <ChevronDown size={16} />
           </button>
           {sortOpen && (
-            <div className="absolute right-0 mt-2 bg-white border shadow-md rounded w-40 z-10">
+            <div className="absolute right-0 mt-2 bg-white border shadow-md rounded w-40 z-10 ">
               {sortOptions.map((item) => (
                 <div
                   key={item}
@@ -100,7 +103,7 @@ const CollectionFiltered = ({collection}:{collection:string}) => {
         </div>
       </div>
 
-      <FilteredCollection columns={columns} collection={collection} />
+      <FilteredCollection columns={columns} items={items} />
     </>
   );
 };

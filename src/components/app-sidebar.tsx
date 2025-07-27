@@ -72,10 +72,15 @@ const data = {
       icon: IconEdit,
     },
     {
+      name:"Order Management",
+      url:"/dashboard/manage-orders",
+      icon:IconEdit
+    },
+    {
       name: "Import Data",
       url: "/dashboard/import-data",
       icon: IconEdit,
-    },
+    }
   ],
 };
 

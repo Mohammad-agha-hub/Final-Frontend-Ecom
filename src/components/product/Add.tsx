@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCartStore } from "@/utils/CartStore";
 import { useSelectedOptionsStore } from "@/utils/SizeStore";
-import { Product, VariantCombination } from "../utilities/types";
+import { Product } from "../utilities/types";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const Add = ({ product }: { product: Product }) => {
   const { data: session } = useSession();
@@ -12,17 +14,29 @@ const Add = ({ product }: { product: Product }) => {
     selectedSize,
     selectedColor,
     combination,
-    setSelectedColor,
-    setSelectedSize,
-    setCombination,
   } = useSelectedOptionsStore();
-
+  const router = useRouter()
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCartStore();
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  // Calculate max stock and price
   const maxStock = combination?.stock ?? product.stock;
   const discount = product.discount || 0;
-  const discountedPrice = discount>0?Math.round(product.price*(1-discount/100)):product.price
+  const discountedPrice =
+    discount > 0
+      ? Math.round(product.price * (1 - discount / 100))
+      : product.price;
+
+  // Reset quantity when combination changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [combination?.id]);
+
+  // Fix hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleQuantity = (type: "increase" | "decrease") => {
     if (type === "decrease" && quantity > 1) {
@@ -34,93 +48,105 @@ const Add = ({ product }: { product: Product }) => {
   };
 
   const handleCart = async () => {
-    if (!selectedSize) return alert("Please select a size");
-    if (!selectedColor) return alert("Please select a color");
-    if (!combination) return alert("Invalid variant selection");
-    if (!session?.user.backendToken) return alert("Please login to continue");
+    if(!session?.user.backendToken){
+      router.push('/login')
+    }
+    if (!selectedSize) {
+      toast.warning("Please select a size");
+      return;
+    }
+    if (!selectedColor) {
+      toast.warning("Please select a color");
+      return;
+    }
+    if (!combination) {
+      toast.error("Invalid variant selection");
+      return;
+    }
+    if (!session?.user.backendToken) {
+      toast.warning("Please login to continue");
+      return;
+    }
+    if (maxStock <= 0) {
+      toast.error("This item is out of stock");
+      return;
+    }
+
     try {
-      setLoading(true)
-      const size = selectedSize;
-      const color = selectedColor;
-
-      // ✅ Deep clone combination before passing to addToCart
-      const variantCopy: VariantCombination = {
-        ...combination,
-        id: combination.id, // ensure ID is preserved
-      };
-
+      setLoading(true);
       await addToCart(
         {
           id: product.id,
           name: product.name,
           image: product.images?.[0]?.url || "",
           price: discountedPrice,
+          discount: product.discount || 0,
         },
         quantity,
-        size,
-        color,
-        variantCopy,
+        combination.id,
+        selectedSize,
+        selectedColor,
         session.user.backendToken
       );
 
-      // ✅ Reset quantity and selections after adding
-      setQuantity(1);
-      setSelectedColor("");
-      setSelectedSize("");
-      setCombination(null); 
+     
+
+      toast.success("Added to cart successfully!");
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast.error("Failed to add to cart. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    finally{
-      setLoading(false)
-    } 
-    
   };
+
+  // Don't render if not mounted (SSR hydration)
+  if (!isMounted) return null;
 
   return (
     <div className="flex flex-col gap-4">
       <h4 className="font-medium">Choose a Quantity</h4>
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center ">
         <div className="flex items-center gap-4">
+          {/* Quantity Selector */}
           <div className="bg-gray-100 py-2 px-4 rounded-3xl flex items-center justify-between w-32">
             <button
               onClick={() => handleQuantity("decrease")}
-              className="text-xl p-[1px] cursor-pointer"
+              disabled={quantity <= 1}
+              className="text-xl p-[1px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               -
             </button>
-            {quantity}
+            <span className="font-medium">{quantity}</span>
             <button
               onClick={() => handleQuantity("increase")}
-              className="text-xl p-[1px] cursor-pointer"
+              disabled={quantity >= maxStock}
+              className="text-xl p-[1px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               +
             </button>
           </div>
-          {maxStock > 0 ? (
-            <div className="text-xs">
-              Only <span className="text-orange-500">{maxStock} items</span>{" "}
-              left!
-            </div>
-          ) : (
-            <div className="text-xs text-red-500">Out of Stock</div>
-          )}
+
+         
         </div>
 
+        {/* Add to Cart Button */}
         <button
           onClick={handleCart}
-          disabled={loading || (combination?.stock ?? 0) <= 0}
-          className="ml-2 w-36 text-sm rounded-3xl cursor-pointer bg-black text-white py-2 px-4 transition-transform duration-200 transform hover:scale-105 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-700"
+          disabled={loading || maxStock <= 0}
+          className="w-36 text-sm rounded-3xl bg-black text-white py-3 px-4 
+            transition-transform duration-200 hover:scale-105 
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+          aria-label={maxStock <= 0 ? "Out of stock" : "Add to cart"}
         >
-          {loading ? "Adding..." : "Add to Cart"}
-        </button>
-      </div>
-
-      <div className="flex justify-center pt-2">
-        <button
-          onClick={handleCart}
-          disabled={loading || (combination?.stock ?? 0) <= 0}
-          className="page-second-btn w-36 text-sm rounded-3xl ring-1 ring-black bg-black text-white py-3 px-4 hover:scale-105 hover:bg-black hover:text-white transition-transform duration-200 disabled:cursor-not-allowed disabled:bg-pink-200 disabled:text-white"
-        >
-          {loading ? "Adding..." : "Add to Cart"}
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Adding...
+            </span>
+          ) : (
+            "Add to Cart"
+          )}
         </button>
       </div>
     </div>

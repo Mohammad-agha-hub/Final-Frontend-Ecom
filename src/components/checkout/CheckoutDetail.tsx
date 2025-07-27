@@ -3,16 +3,40 @@
 import React, { useEffect, useState } from "react";
 import countries from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
-import Input from "../utilities/Input"; // Adjust path if needed
+import Input from "../utilities/Input";
 import BrowserIcon from "../utilities/BrowserIcon";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useCartStore } from "@/utils/CartStore";
 
-countries.registerLocale(en); // register English
+
+countries.registerLocale(en);
+
+interface CheckoutDetailProps {
+  couponCode: string;
+  discountAmount: number;
+}
 
 const pakistaniCities = [
-  "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad",
-  "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala",
-  "Bahawalpur", "Sargodha", "Sukkur", "Larkana", "Sheikhupura",
-  "Rahim Yar Khan", "Jhang", "Dera Ghazi Khan", "Abbottabad",
+  "Karachi",
+  "Lahore",
+  "Islamabad",
+  "Rawalpindi",
+  "Faisalabad",
+  "Multan",
+  "Peshawar",
+  "Quetta",
+  "Sialkot",
+  "Gujranwala",
+  "Bahawalpur",
+  "Sargodha",
+  "Sukkur",
+  "Larkana",
+  "Sheikhupura",
+  "Rahim Yar Khan",
+  "Jhang",
+  "Dera Ghazi Khan",
+  "Abbottabad",
 ];
 
 const Dropdown = ({
@@ -33,7 +57,7 @@ const Dropdown = ({
       <label className="block text-sm mb-1 text-gray-700">{label}</label>
       <div
         className={`border rounded px-4 py-3 text-sm cursor-pointer bg-white transition-all duration-150 ${
-          open ? "ring-[1.1px] ring-[#1773b0]" : "border-gray-300"
+          open ? "ring-2 ring-[#1773b0]" : "border-gray-300"
         }`}
         onClick={() => setOpen(!open)}
       >
@@ -48,7 +72,7 @@ const Dropdown = ({
                 setSelected(option);
                 setOpen(false);
               }}
-              className={`px-4 py-1.5 cursor-pointer transition-all duration-100 hover:bg-gray-100 leading-tight ${
+              className={`px-4 py-2 cursor-pointer transition-all duration-100 hover:bg-gray-100 ${
                 selected === option ? "bg-gray-100 font-medium" : ""
               }`}
             >
@@ -61,17 +85,40 @@ const Dropdown = ({
   );
 };
 
-const CheckoutDetail = () => {
+const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
+  couponCode,
+  discountAmount,
+}) => {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [countriesList, setCountriesList] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("Pakistan");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [useDifferentBilling, setUseDifferentBilling] = useState(false);
+  const { items, clearCart } = useCartStore();
 
-  const [address, setAddress] = useState("");
-  const [cityInput, setCityInput] = useState("");
-  const [state, setState] = useState("");
-  const [postal, setPostal] = useState("");
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    apartment: "",
+    phone: "",
+    cityInput: "",
+    state: "",
+    postal: "",
+    billingFirstName: "",
+    billingLastName: "",
+    billingAddress: "",
+    billingApartment: "",
+    billingCity: "",
+    billingState: "",
+    billingPostalCode: "",
+    billingCountry: "Pakistan",
+  });
 
   useEffect(() => {
     const countryNames = countries.getNames("en", { select: "official" });
@@ -79,13 +126,125 @@ const CheckoutDetail = () => {
   }, []);
 
   const isInternational = selectedCountry !== "Pakistan";
-  const hasFilledFields = address && cityInput && state && postal;
+  const hasFilledFields =
+    formData.address &&
+    (isInternational ? formData.cityInput : selectedCity) &&
+    (isInternational ? formData.state : true) &&
+    (isInternational ? formData.postal : true);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitOrder = async () => {
+    setIsLoading(true);
+    try {
+      // Basic validation
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.address ||
+        !formData.phone
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      if (
+        isInternational &&
+        (!formData.cityInput || !formData.state || !formData.postal)
+      ) {
+        throw new Error("Please fill in all international shipping details");
+      }
+
+      const orderData = {
+        items: items.map((item) => ({
+          productId: item.productId,
+          combinationId: item.combinationId,
+          quantity: item.quantity,
+          product: item.product,
+          discountedAmount: discountAmount,
+        })),
+        paymentMethod: selectedPayment,
+        couponCode: couponCode || undefined,
+        shippingAmount:isInternational?14000:150,
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          address: formData.address,
+          apartment: formData.apartment || undefined,
+          city: isInternational ? formData.cityInput : selectedCity,
+          state: isInternational ? formData.state : undefined,
+          postalCode: isInternational ? formData.postal : undefined,
+          country: selectedCountry,
+          phone: formData.phone,
+          email: session?.user.email,
+        },
+
+        billingAddress: useDifferentBilling
+          ? {
+              firstName: formData.billingFirstName || formData.firstName,
+              lastName: formData.billingLastName || formData.lastName,
+              address: formData.billingAddress || formData.address,
+              apartment:
+                formData.billingApartment || formData.apartment || undefined,
+              city:
+                formData.billingCity ||
+                (isInternational ? formData.cityInput : selectedCity),
+              state:
+                formData.billingState ||
+                (isInternational ? formData.state : undefined),
+              postalCode:
+                formData.billingPostalCode ||
+                (isInternational ? formData.postal : undefined),
+              country: formData.billingCountry || selectedCountry,
+              phone: formData.phone,
+            }
+          : undefined,
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.user.backendToken}`,
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to place order!");
+      }
+
+      if (selectedPayment === "paypal") {
+        window.location.href = data.paymentUrl;
+      } else {
+        clearCart();
+        router.push(`/order-confirmation/${data.order.id}`);
+      }
+    } catch (error) {
+      console.error("Order submission error", error);
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Failed to place order. Please try again.");
+      }
+      
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="lg:w-1/2 p-6 space-y-6">
       {/* DELIVERY */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Delivery</h2>
+        <h2 className="text-xl font-semibold mb-4">Delivery</h2>
 
         {!isInternational && (
           <Dropdown
@@ -107,52 +266,123 @@ const CheckoutDetail = () => {
 
         <div className="flex gap-4 mt-4">
           <div className="w-1/2">
-            <label className="block text-sm mb-1 text-gray-700">First name</label>
-            <Input type="text" placeholder="First name" />
+            <label className="block text-sm mb-1 text-gray-700">
+              First name*
+            </label>
+            <Input
+              type="text"
+              name="firstName"
+              placeholder="First name"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              required
+            />
           </div>
           <div className="w-1/2">
-            <label className="block text-sm mb-1 text-gray-700">Last name</label>
-            <Input type="text" placeholder="Last name" />
+            <label className="block text-sm mb-1 text-gray-700">
+              Last name*
+            </label>
+            <Input
+              type="text"
+              name="lastName"
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              required
+            />
           </div>
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm mb-1 text-gray-700">Address</label>
-          <Input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <label className="block text-sm mb-1 text-gray-700">Address*</label>
+          <Input
+            type="text"
+            name="address"
+            placeholder="Address"
+            value={formData.address}
+            onChange={handleInputChange}
+            required
+          />
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm mb-1 text-gray-700">Apartment, suite, etc</label>
-          <Input type="text" placeholder="Apartment, suite, etc. (optional)" />
+          <label className="block text-sm mb-1 text-gray-700">
+            Apartment, suite, etc
+          </label>
+          <Input
+            type="text"
+            name="apartment"
+            placeholder="Apartment, suite, etc. (optional)"
+            value={formData.apartment}
+            onChange={handleInputChange}
+          />
         </div>
 
         {isInternational && (
           <div className="flex gap-4 mt-4">
             <div className="w-1/3">
-              <label className="block text-sm mb-1 text-gray-700">City</label>
-              <Input type="text" placeholder="City" value={cityInput} onChange={(e) => setCityInput(e.target.value)} />
+              <label className="block text-sm mb-1 text-gray-700">City*</label>
+              <Input
+                type="text"
+                name="cityInput"
+                placeholder="City"
+                value={formData.cityInput}
+                onChange={handleInputChange}
+                required
+              />
             </div>
             <div className="w-1/3">
-              <label className="block text-sm mb-1 text-gray-700">State / Territory</label>
-              <Input type="text" placeholder="State / Territory" value={state} onChange={(e) => setState(e.target.value)} />
+              <label className="block text-sm mb-1 text-gray-700">
+                State / Territory*
+              </label>
+              <Input
+                type="text"
+                name="state"
+                placeholder="State / Territory"
+                value={formData.state}
+                onChange={handleInputChange}
+                required
+              />
             </div>
             <div className="w-1/3">
-              <label className="block text-sm mb-1 text-gray-700">Postal Code</label>
-              <Input type="text" placeholder="Postal Code" value={postal} onChange={(e) => setPostal(e.target.value)} />
+              <label className="block text-sm mb-1 text-gray-700">
+                Postal Code*
+              </label>
+              <Input
+                type="text"
+                name="postal"
+                placeholder="Postal Code"
+                value={formData.postal}
+                onChange={handleInputChange}
+                required
+              />
             </div>
           </div>
         )}
 
         <div className="mt-4">
-          <label className="block text-sm mb-1 text-gray-700">Phone</label>
-          <Input type="tel" placeholder="Phone" />
+          <label className="block text-sm mb-1 text-gray-700">Phone*</label>
+          <Input
+            type="tel"
+            name="phone"
+            placeholder="Phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            required
+          />
         </div>
       </div>
 
       {/* SHIPPING METHOD */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Shipping Method</h2>
-        <div className={isInternational ? `flex justify-between items-center bg-gray-100 rounded px-4 py-4 text-gray-800` : `flex justify-between items-center border border-[#1773b0] bg-blue-50 rounded px-4 py-3`}>
+        <h2 className="text-xl font-semibold mb-4">Shipping Method</h2>
+        <div
+          className={`flex justify-between items-center rounded px-4 py-3 ${
+            isInternational
+              ? "bg-gray-100 text-gray-800"
+              : "border border-[#1773b0] bg-blue-50"
+          }`}
+        >
           <span className="text-sm">
             {isInternational
               ? hasFilledFields
@@ -160,7 +390,7 @@ const CheckoutDetail = () => {
                 : "Enter your shipping address to view available shipping methods"
               : "Standard"}
           </span>
-          <span className="text-sm">
+          <span className="text-sm font-medium">
             {isInternational
               ? hasFilledFields
                 ? "Rs 14,000.00"
@@ -172,7 +402,7 @@ const CheckoutDetail = () => {
 
       {/* PAYMENT */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Payment</h2>
+        <h2 className="text-xl font-semibold mb-4">Payment</h2>
         <p className="text-sm text-gray-500 mb-4">
           All transactions are secure and encrypted.
         </p>
@@ -207,11 +437,11 @@ const CheckoutDetail = () => {
             </div>
 
             {option.value === "paypal" && selectedPayment === "paypal" && (
-             <div className="flex flex-col justify-center items-center w-full max-w-[600px] min-h-[12rem] bg-gray-100 rounded p-4 sm:p-6">
-
-                  <BrowserIcon />
-                  <p className="text-sm text-center max-w-xs sm:max-w-sm mb-5">
-                  After clicking “Pay now”, you will be redirected to Paypal to complete your purchase securely.
+              <div className="flex flex-col justify-center items-center w-full min-h-[12rem] bg-gray-100 rounded p-6">
+                <BrowserIcon />
+                <p className="text-sm text-center max-w-sm my-4">
+                  After clicking &quot;Pay now&quot;, you will be redirected to
+                  PayPal to complete your purchase securely.
                 </p>
               </div>
             )}
@@ -221,7 +451,7 @@ const CheckoutDetail = () => {
 
       {/* BILLING ADDRESS */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Billing Address</h2>
+        <h2 className="text-xl font-semibold mb-4">Billing Address</h2>
         <div
           className={`flex items-center gap-3 cursor-pointer border rounded px-4 py-3 mb-3 text-sm ${
             !useDifferentBilling
@@ -268,83 +498,154 @@ const CheckoutDetail = () => {
             <Dropdown
               label="Country/Region"
               options={countriesList}
-              selected={selectedCountry}
-              setSelected={setSelectedCountry}
+              selected={formData.billingCountry}
+              setSelected={(value) =>
+                setFormData({ ...formData, billingCountry: value })
+              }
             />
             <div className="flex gap-4">
               <div className="w-1/2">
-                <label className="block text-sm mb-1 text-gray-700">First name</label>
-                <Input type="text" placeholder="First name" />
+                <label className="block text-sm mb-1 text-gray-700">
+                  First name
+                </label>
+                <Input
+                  type="text"
+                  name="billingFirstName"
+                  placeholder="First name"
+                  value={formData.billingFirstName}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm mb-1 text-gray-700">Last name</label>
-                <Input type="text" placeholder="Last name" />
+                <label className="block text-sm mb-1 text-gray-700">
+                  Last name
+                </label>
+                <Input
+                  type="text"
+                  name="billingLastName"
+                  placeholder="Last name"
+                  value={formData.billingLastName}
+                  onChange={handleInputChange}
+                />
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1 text-gray-700">Address</label>
-              <Input type="text" placeholder="Address" />
+              <label className="block text-sm mb-1 text-gray-700">
+                Address
+              </label>
+              <Input
+                type="text"
+                name="billingAddress"
+                placeholder="Address"
+                value={formData.billingAddress}
+                onChange={handleInputChange}
+              />
             </div>
             <div>
-              <label className="block text-sm mb-1 text-gray-700">Apartment, suite, etc</label>
-              <Input type="text" placeholder="Apartment, suite, etc. (optional)" />
+              <label className="block text-sm mb-1 text-gray-700">
+                Apartment, suite, etc
+              </label>
+              <Input
+                type="text"
+                name="billingApartment"
+                placeholder="Apartment, suite, etc. (optional)"
+                value={formData.billingApartment}
+                onChange={handleInputChange}
+              />
             </div>
             <div className="flex gap-4">
               <div className="w-1/2">
                 <label className="block text-sm mb-1 text-gray-700">City</label>
-                <Input type="text" placeholder="City" />
+                <Input
+                  type="text"
+                  name="billingCity"
+                  placeholder="City"
+                  value={formData.billingCity}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="w-1/2">
-                <label className="block text-sm mb-1 text-gray-700">Postal code</label>
-                <Input type="text" placeholder="Postal code" />
+                <label className="block text-sm mb-1 text-gray-700">
+                  Postal code
+                </label>
+                <Input
+                  type="text"
+                  name="billingPostalCode"
+                  placeholder="Postal code"
+                  value={formData.billingPostalCode}
+                  onChange={handleInputChange}
+                />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm mb-1 text-gray-700">Phone</label>
-              <Input type="tel" placeholder="Phone" />
             </div>
           </div>
         )}
       </div>
 
       {/* POLICY NOTE */}
-      <div className="bg-gray-100 p-6 text-sm text-black rounded-lg">
+      <div className="bg-gray-100 p-6 rounded-lg">
         <div className="flex items-start gap-2 mb-3">
-          <div className="w-5 h-5 pt-1 rounded-full border border-gray-900 text-black flex items-center justify-center text-xs font-semibold mt-0.5">
+          <div className="w-5 h-5 rounded-full border border-gray-900 flex items-center justify-center text-xs font-semibold mt-0.5">
             i
           </div>
           <p className="font-medium">
-            Note: You may receive multiple packages for one order (local orders only)
+            Note: You may receive multiple packages for one order (local orders
+            only)
           </p>
         </div>
-        <ul className="pl-8 space-y-2 text-[13px]">
-          <li className="flex gap-2">
-            <span className="mt-2 w-1 h-1 bg-black rounded-full flex-shrink-0"></span>
-            <span>For nationwide orders, delivery will take 2–5 working days.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-2 w-1 h-1 bg-black rounded-full flex-shrink-0"></span>
-            <span>For international orders, delivery will take 7–10 working days via DHL courier only.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-2 w-1 h-1 bg-black rounded-full flex-shrink-0"></span>
-            <span>For international orders, VAT and duties will be paid by the customer.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-2 w-1 h-1 bg-black rounded-full flex-shrink-0"></span>
-            <span>
-              For any inquiries, reach out at{" "}
-              <span className="text-gray-700 hover:underline">Ogaan@gmail.com</span>{" "}
-              or call us at{" "}
-              <span className="text-gray-700 hover:underline">+92 00000000</span>.
-            </span>
-          </li>
+        <ul className="pl-8 space-y-2 text-sm">
+          {[
+            "For nationwide orders, delivery will take 2–5 working days.",
+            "For international orders, delivery will take 7–10 working days via DHL courier only.",
+            "For international orders, VAT and duties will be paid by the customer.",
+            `For any inquiries, reach out at Ogaan@gmail.com or call us at +92 00000000.`,
+          ].map((item, index) => (
+            <li key={index} className="flex gap-2">
+              <span className="mt-2 w-1 h-1 bg-black rounded-full flex-shrink-0"></span>
+              <span>{item}</span>
+            </li>
+          ))}
         </ul>
       </div>
 
       {/* SUBMIT BUTTON */}
-      <button className="w-full bg-[#1773b0] text-white text-lg font-medium py-3 rounded hover:bg-[#6e9dba] transition cursor-pointer">
-        {selectedPayment === "cod" ? "Complete Order" : "Pay Now"}
+      <button
+        onClick={handleSubmitOrder}
+        disabled={isLoading}
+        className={`w-full bg-[#1773b0] text-white text-lg font-medium py-3 rounded transition flex justify-center items-center ${
+          isLoading
+            ? "opacity-70 cursor-not-allowed"
+            : "hover:bg-[#6e9dba] cursor-pointer"
+        }`}
+      >
+        {isLoading ? (
+          <>
+            <svg
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Processing...
+          </>
+        ) : selectedPayment === "cod" ? (
+          "Complete Order"
+        ) : (
+          "Pay Now"
+        )}
       </button>
     </div>
   );

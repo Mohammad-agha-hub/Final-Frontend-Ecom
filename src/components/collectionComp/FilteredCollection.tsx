@@ -3,61 +3,54 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Eye, ShoppingCart } from "lucide-react";
-import { AllProducts } from "@/components/utilities/ClothesData";
+import { ShoppingCart } from "lucide-react";
 import { useFilterStore } from "@/utils/FilterStore";
-import { Product } from "../utilities/types"; // Make sure path is correct
-import dynamic from "next/dynamic";
+import { Product } from "../utilities/types";
+import { useRouter } from "next/navigation";
 
-const ProductModal = dynamic(()=>import('../modal/ProductModal'),{
-  ssr:false,
-  loading:()=>null
-})
 type FilteredCollectionProps = {
   columns: number;
-  collection: string;
+  items: Product[];
 };
 
-const FilteredCollection = ({
-  columns,
-  collection,
-}: FilteredCollectionProps) => {
-  
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
+ 
   const filters = useFilterStore((state) => state.filters);
   const sortBy = useFilterStore((state) => state.sortBy);
-  
-  let products:Product[] = AllProducts.filter((product) => {
-    if (product.subcategory !== collection) return false;
+  const router = useRouter();
 
+  let products: Product[] = items.filter((item) => {
     const matchesPrice =
       !filters.price.length ||
       filters.price.some((range: string) => {
-        if (range === "9000+") return +product.price >= 9000;
+        if (range === "9000+") return +item.price >= 9000;
         const [min, max] = range.split("-").map(Number);
-        return +product.price >= min && +product.price <= max;
+        return +item.price >= min && +item.price <= max;
       });
+      if(item.variantCombinations && item.variantCombinations.length>0){
+        
+      }
+    const variantValues = item.variantCombinations?.flatMap((combo) =>
+      combo.variants.map((v) => ({
+        key: v.variant.key,
+        value: v.variant.value,
+      }))
+    );
 
     const matchesColor =
-      !filters.color.length || filters.color.includes(product.color??'');
-
-    const matchesType =
-      !filters.type.length || filters.type.includes(product.type);
+      !filters.color.length ||
+      variantValues?.some(
+        (v) =>
+          v.key.toLowerCase() === "color" && filters.color.includes(v.value)
+      );
 
     const matchesSize =
-      !filters.size.length || filters.size.includes(product.size??'');
+      !filters.size.length ||
+      variantValues?.some(
+        (v) => v.key.toLowerCase() === "size" && filters.size.includes(v.value)
+      );
 
-    const matchesPieces =
-      !filters.pieces.length || filters.pieces.includes(product.pieces.toString());
-
-    return (
-      matchesPrice &&
-      matchesColor &&
-      matchesType &&
-      matchesSize &&
-      matchesPieces
-    );
+    return matchesPrice && matchesColor && matchesSize;
   });
 
   products = [...products].sort((a, b) => {
@@ -75,9 +68,10 @@ const FilteredCollection = ({
     }
   });
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setModalOpen(true);
+  const handleProductClick = (item: Product) => {
+    
+    router.push(`/products/${item.slug}`);
+    router.refresh();
   };
 
   const gridColsClass: Record<number, string> = {
@@ -89,32 +83,24 @@ const FilteredCollection = ({
   };
 
   return (
-    <>
-      <div className="p-4 max-w-screen overflow-x-hidden">
-        <span className="text-sm text-gray-600 mb-4 block">
-          Products Available: {products.length}
-        </span>
-        <div className="grid gap-6 w-full product-grid transition-all duration-300 ease-in-out">
-          <div className={`grid ${gridColsClass[columns]} gap-6`}>
-            {products.map((product) => (
-              <div
-                key={product.id}
-                onClick={() => handleProductClick(product)}
-                className="cursor-pointer"
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+    <div className="p-4 max-w-screen overflow-x-hidden">
+      <span className="text-sm text-gray-600 mb-4 block">
+        Products Available: {products.length}
+      </span>
+      <div className="grid gap-6 w-full product-grid transition-all duration-300 ease-in-out">
+        <div className={`grid ${gridColsClass[columns]} gap-6`}>
+          {products.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => handleProductClick(item)}
+              className="cursor-pointer"
+            >
+              <ProductCard product={item} />
+            </div>
+          ))}
         </div>
       </div>
-
-      <ProductModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        product={selectedProduct}
-      />
-    </>
+    </div>
   );
 };
 
@@ -132,28 +118,33 @@ const ProductCard = ({ product }: ProductCardProps) => {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="relative aspect-[3/4] w-full">
-        <Image
-          src={product.image[0]}
-          alt="Front"
-          fill
-          className="object-cover"
-        />
+        {product.images && product.images.length>0 && (
+ <Image
+ src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.images[1].url}`}
+ alt="Front"
+ fill
+ className="object-cover"
+/>
+        )}
+       
         <motion.div
           className="absolute inset-0 z-10"
           style={{ pointerEvents: "none" }}
           initial={false}
           animate={{
             opacity: hovered ? 1 : 0,
-            scale: hovered ? 1.05 : 1,
+            scale: hovered ? 1.02 : 1,
           }}
           transition={{ duration: 0.6 }}
         >
-          <Image
-            src={product.image[1]}
+          {product.images && product.images.length>0 && (
+            <Image
+            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.images[0].url}`}
             alt="Back"
             fill
             className="object-cover"
           />
+          )}
         </motion.div>
       </div>
 
@@ -163,9 +154,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
         animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : -40 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="pointer-events-auto">
-          <HoverIconButton label="Quick View" icon={<Eye size={18} />} />
-        </div>
         <div className="pointer-events-auto">
           <HoverIconButton
             label="Add to Cart"
@@ -178,7 +166,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <h1 className="text-sm px-2 font-medium truncate text-gray-900">
           {product.name}
         </h1>
-        <span className="text-sm text-gray-700">Rs{product.price}</span>
+        <div className="flex justify-center gap-2">
+          <span className="text-sm text-gray-700">
+            {product.price}
+          </span>
+          {/* <span className="text-sm text-gray-900">
+            Rs{" "}
+            {product.price -
+              Math.round((product.price * product.discount) / 100)}
+          </span> */}
+          {/* {product.discount > 0 && (
+            <>
+              <span className="text-sm text-gray-600 line-through">
+                Rs {product.price}
+              </span>
+              <span className="text-sm text-red-400">{product.discount}%</span>
+            </>
+          )} */}
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
-import { Poppins } from "next/font/google";
 import Loading from "./loading";
 import Providers from "./providers";
 import { ToastContainer } from "react-toastify";
@@ -9,12 +8,18 @@ import "react-toastify/dist/ReactToastify.css";
 import FooterWrapper from "@/components/footer/FooterWrapper";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import Login from "@/components/navbar/Login";
+import LocalFont from 'next/font/local'
 
-const poppins = Poppins({
-  subsets: ["latin"],
+const poppins = LocalFont({
+  src: [
+    {
+      path: "./fonts/Poppins-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-poppins", // this enables use with Tailwind
   display: "swap",
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -22,17 +27,20 @@ export const metadata: Metadata = {
   description: "Ecommerce-Website",
 };
 
-export default function RootLayout({
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  
+
   return (
     <html lang="en" className={`${poppins.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
           <div className="min-h-screen flex flex-col">
-            <NavbarWrapper />
+            <NavbarWrapper/>
             <Login/>
             <Suspense fallback={<Loading />}>{children}</Suspense>
             <FooterWrapper />

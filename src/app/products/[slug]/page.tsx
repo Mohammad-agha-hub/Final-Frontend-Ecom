@@ -1,36 +1,55 @@
+import ProductImages from "@/components/product/ProductImages";
+import CustomizeProucts from "@/components/product/CustomizeProucts";
+import Add from "@/components/product/Add";
+import { Product } from "@/components/utilities/types";
 
-import ProductImages from '@/components/product/ProductImages';
-import CustomizeProucts from '@/components/product/CustomizeProucts';
-import Add from '@/components/product/Add';
-import { notFound } from 'next/navigation';
-import {Product} from '../../../components/utilities/types'
-
-
-
-async function fetchProducts(): Promise<Product[]> {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
-    const data = await res.json();
-  
-    return Array.isArray(data) ? data : data.products || [];
+export async function generateStaticParams(){
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,{
+    next:{revalidate:60}
+  })
+  if(!res.ok){
+    console.error('Failed to fetch products for static params')
+    return[]
   }
+  const data = await res.json()
+  return data.products.map((product:{slug:string})=>({
+    slug:product.slug
+  }))
+}
 
+// Fetch product(s) by slug
+async function fetchProducts(slug: string): Promise<Product|null> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/product/${slug}`,
+      { next:{revalidate:60} }
+    );
 
-export default async function ProductPage({ params }: { params: Promise<{ product: string }> }) {
-  const { product } = await params;
-  const products = await fetchProducts()
+    if (!res.ok) throw new Error("Failed to fetch product");
 
-  const singleProduct = products.find((p) => p.slug === product) as Product | undefined
+    const data = await res.json();
+    
+    return data?.product??null
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
+}
+
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const singleProduct = await fetchProducts(slug);
   
-
-  if (!singleProduct) return notFound();
-
+  if (!singleProduct) return <div className="h-screen flex justify-center items-center text-4xl font-bold">Product not found</div>;
+ 
+ 
   return (
-    <div className="px-4 md:px-[10%] lg:px-10 xl:px-25 2xl:px-40 relative flex flex-col lg:flex-row gap-16">
+    <div className="px-1 md:px-[10%] lg:px-10 xl:px-25 2xl:px-40 relative flex flex-col lg:flex-row gap-16">
       {/* Product Images */}
       <div className="w-full lg:w-1/2 lg:sticky top-18 h-max">
         {singleProduct.images && (
@@ -45,8 +64,8 @@ export default async function ProductPage({ params }: { params: Promise<{ produc
         <div className="h-[2px] bg-gray-100" />
 
         {/* Pricing */}
-        {<div className="flex items-center gap-4">
-          {singleProduct.discount>0 ? (
+        <div className="flex items-center gap-4">
+          {singleProduct.discount > 0 ? (
             <>
               <h3 className="text-xl text-gray-500 line-through">
                 Rs {(+singleProduct.price).toLocaleString("en-PK")}
@@ -63,11 +82,12 @@ export default async function ProductPage({ params }: { params: Promise<{ produc
               Rs {(+singleProduct.price).toLocaleString("en-PK")}
             </h2>
           )}
-        </div> }
+        </div>
 
         <div className="h-[2px] bg-gray-100" />
-        {product && <CustomizeProucts product={singleProduct} />}
-        {product && <Add product={singleProduct} />}
+
+        <CustomizeProucts product={singleProduct} />
+        <Add product={singleProduct} />
 
         <div className="h-[2px] bg-gray-100" />
 

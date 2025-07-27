@@ -1,12 +1,13 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type WishlistItem = {
   id: string;
   name: string;
   image: string[];
-  price: string;
+  price: number;
   slug: string;
-  // Add other properties as needed
+  discount:number;
 };
 
 type WishlistState = {
@@ -16,21 +17,28 @@ type WishlistState = {
   clearWishlist: () => void;
 };
 
-export const useWishlistStore = create<WishlistState>((set, get) => ({
-  wishlist: [],
+export const useWishlistStore = create<WishlistState>()(
+  persist(
+    (set, get) => ({
+      wishlist: [],
 
-  addToWishlist: (item) => {
-    const existing = get().wishlist.find((i) => i.id === item.id);
-    if (!existing) {
-      set((state) => ({ wishlist: [...state.wishlist, item] }));
+      addToWishlist: (item) => {
+        const exists = get().wishlist.find((i) => i.id === item.id);
+        if (!exists) {
+          set((state) => ({ wishlist: [...state.wishlist, item] }));
+        }
+      },
+
+      removeFromWishlist: (id) => {
+        set((state) => ({
+          wishlist: state.wishlist.filter((item) => item.id !== id),
+        }));
+      },
+
+      clearWishlist: () => set({ wishlist: [] }),
+    }),
+    {
+      name: 'wishlist-storage', // Key in localStorage
     }
-  },
-
-  removeFromWishlist: (id) => {
-    set((state) => ({
-      wishlist: state.wishlist.filter((item) => item.id !== id),
-    }));
-  },
-
-  clearWishlist: () => set({ wishlist: [] }),
-}));
+  )
+);

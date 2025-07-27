@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { useWishlistStore } from "@/utils/WishlistStore";
 import { useSelectedOptionsStore } from "@/utils/SizeStore";
-import { Product, VariantCombination, Variant } from "../utilities/types";
+import { Product, VariantCombination } from "../utilities/types";
 
 const CustomizeProducts = ({ product }: { product: Product }) => {
   const [wished, setWished] = useState(false);
@@ -14,6 +14,7 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     setSelectedColor,
     setSelectedSize,
     setCombination,
+    combination,
   } = useSelectedOptionsStore();
 
   const addToWishlist = useWishlistStore((state) => state.addToWishlist);
@@ -21,48 +22,83 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     (state) => state.removeFromWishlist
   );
 
-  const predefinedSizes = ["XS", "S", "M", "L", "XL"];
+  // Reset selections when product changes
+  useEffect(() => {
+    setSelectedColor("");
+    setSelectedSize("");
+    setCombination(null);
+  }, [product.id,setSelectedColor,setCombination,setSelectedSize]);
 
-  const comboMap = useMemo(() => {
-    const map: Record<string, Record<string, VariantCombination>> = {};
-    const variantCombinations = product.variantCombinations;
+  // Create a map of color -> size -> combination
+  const { colorSizeMap, colorStockMap, sizeStockMap } = useMemo(() => {
+    const colorSizeMap: Record<string, Record<string, VariantCombination>> = {};
+    const colorStockMap: Record<string, number> = {};
+    const sizeStockMap: Record<string, number> = {};
 
-    if (!Array.isArray(variantCombinations)) return map;
+    product.variantCombinations?.forEach((combo) => {
+      if (!combo || !Array.isArray(combo.variants)) return;
 
-    variantCombinations.forEach((combo: VariantCombination) => {
-      const color = combo.variants.find(
-        (v: Variant) => v.variant.key === "Color"
-      )?.variant.value;
-      const size = combo.variants.find((v: Variant) => v.variant.key === "Size")
-        ?.variant.value;
+      const colorVariant = combo.variants.find(
+        (v) => v?.variant?.key === "Color"
+      );
+      const sizeVariant = combo.variants.find(
+        (v) => v?.variant?.key === "Size"
+      );
 
-      if (!color || !size) return;
+      if (!colorVariant || !sizeVariant) return;
 
-      if (!map[color]) map[color] = {};
-      map[color][size] = combo;
+      const color = colorVariant.variant.value;
+      const size = sizeVariant.variant.value;
+
+      // Build color -> size -> combo map
+      if (!colorSizeMap[color]) colorSizeMap[color] = {};
+      colorSizeMap[color][size] = combo;
+
+      // Calculate total stock per color
+      colorStockMap[color] = (colorStockMap[color] || 0) + combo.stock;
+
+      // Calculate total stock per size
+      sizeStockMap[size] = (sizeStockMap[size] || 0) + combo.stock;
     });
 
-    return map;
+    return { colorSizeMap, colorStockMap, sizeStockMap };
   }, [product]);
-
+  
+  // Get available colors (filter out colors with no stock)
   const availableColors = useMemo(() => {
-    if (!selectedSize) return Object.keys(comboMap);
-    return Object.keys(comboMap).filter(
-      (color) => comboMap[color][selectedSize]
-    );
-  }, [comboMap, selectedSize]);
+    return Object.keys(colorSizeMap).filter(color => 
+      colorStockMap[color] > 0 && // Has stock
+      (!selectedSize || Object.keys(colorSizeMap[color]).includes(selectedSize)) // Size compatible
+  )}, [colorSizeMap, colorStockMap, selectedSize]);
+
+  // Get available sizes for selected color (filter out sizes with no stock)
+  const availableSizes = useMemo(() => {
+    if (!selectedColor) return [];
+    return Object.keys(colorSizeMap[selectedColor] || [])
+  }, [selectedColor, colorSizeMap]);
+
+  // Get predefined sizes with availability info
+  const predefinedSizes = useMemo(() => {
+    return ["XS", "S", "M", "L", "XL"].map(size => ({
+      value: size,
+      available: availableSizes.includes(size),
+      stock: sizeStockMap[size] || 0,
+    }));
+  }, [availableSizes, sizeStockMap]);
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
+    setSelectedSize(""); // Reset size when color changes
 
-    // If current selected size is available in the new color
-    if (comboMap[color]?.[selectedSize]) {
-      const combo = comboMap[color][selectedSize];
-      if (combo) {setCombination(combo)}
-      else{setCombination(null)};
+    // Find first available size for this color
+    const firstAvailableSize = Object.keys(colorSizeMap[color]).find(size => 
+      colorSizeMap[color][size].stock > 0
+    );
+
+    if (firstAvailableSize) {
+      setSelectedSize(firstAvailableSize);
+      setCombination(colorSizeMap[color][firstAvailableSize]);
     } else {
-      // Reset size + combo if not available
-      setSelectedSize("");
       setCombination(null);
     }
   };
@@ -70,48 +106,78 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
   const handleSizeSelect = (size: string) => {
     if (!selectedColor) return;
     setSelectedSize(size);
-    const combo = comboMap[selectedColor]?.[size];
-    if (combo){ setCombination(combo)}
-    else{
-      setCombination(null)
-    }
-      ;
+    setCombination(colorSizeMap[selectedColor]?.[size] || null);
   };
 
   const handleWishlist = () => {
     if (wished) {
       removeFromWishlist(product.id);
     } else {
-      addToWishlist({ ...product, price: product.price.toString() });
+      addToWishlist({ ...product, price: product.price });
     }
     setWished(!wished);
   };
+
+  // Show stock information for selected combination
+  const stockInfo = useMemo(() => {
+    if (!combination) return null;
+    
+    if (combination.stock > 30) return "In Stock";
+    if (combination.stock > 0) return `Only ${combination.stock} left!`;
+    return "Out of Stock";
+  }, [combination]);
 
   return (
     <div className="flex flex-col gap-6">
       {/* Color Selector */}
       <div className="flex flex-col gap-2">
-        <h4 className="font-medium">Choose a Color</h4>
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium">Choose a Color</h4>
+          <div
+            onClick={handleWishlist}
+            className="flex items-center gap-2 cursor-pointer group"
+          >
+            <span className="text-sm text-gray-700 group-hover:text-black transition">
+              Add to Wishlist
+            </span>
+            <Heart
+              className={`w-5 h-5 ${
+                wished
+                  ? "fill-red-500 text-red-600 heart-popup"
+                  : "text-gray-400"
+              }`}
+            />
+          </div>
+        </div>
         <div className="flex gap-3">
           {availableColors.map((color) => {
             const isWhite = color.toLowerCase() === "white";
+            const isSelected = selectedColor === color;
+            const stock = colorStockMap[color] || 0;
+
             return (
               <div
                 key={color}
-                onClick={() => handleColorSelect(color)}
+                onClick={() => stock > 0 && handleColorSelect(color)}
                 className={`
-                  w-8 h-8 rounded-full cursor-pointer ring-2 transition
+                  relative w-8 h-8 rounded-full cursor-pointer ring-2 transition
                   ${
-                    selectedColor === color
+                    isSelected
                       ? "ring-orange-400 scale-110"
-                      : "ring-transparent hover:ring-orange-200"
+                      : stock > 0
+                      ? "ring-transparent hover:ring-orange-200"
+                      : "opacity-50 cursor-not-allowed"
                   }
                 `}
                 style={{
                   backgroundColor: color.toLowerCase(),
                   border: isWhite ? "1px solid orange" : "none",
                 }}
-              />
+              >
+                {stock <= 0 && (
+                  <div className="absolute inset-0 bg-white/50 rounded-full" />
+                )}
+              </div>
             );
           })}
         </div>
@@ -119,41 +185,37 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
 
       {/* Size Selector Title + Wishlist */}
       <div className="flex justify-between items-center gap-2">
-        <h4 className="font-medium">Choose a Size</h4>
-        <div
-          onClick={handleWishlist}
-          className="page-first-wished flex items-center gap-2 cursor-pointer group"
-        >
-          <span className="pt-1 text-sm text-gray-700 group-hover:text-black transition">
-            Add to Wishlist
-          </span>
-          <Heart
-            className={`mt-1 w-5 h-5 ${
-              wished ? "fill-red-500 text-red-600 heart-popup" : "text-gray-400"
-            }`}
-          />
+        <div className="flex items-center gap-10">
+          <h4 className="font-medium">Choose a Size</h4>
+          {stockInfo && combination && (
+            <span
+              className={`text-sm ${
+                combination.stock > 0 ? "text-orange-500" : "text-red-500"
+              }`}
+            >
+              {stockInfo}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Sizes */}
       <ul className="flex justify-between items-center gap-3">
         <div className="flex gap-3">
-          {predefinedSizes.map((size) => {
-            const isAvailable =
-              selectedColor && comboMap[selectedColor]?.[size];
+          {predefinedSizes.map(({ value: size, available, stock }) => {
             const isSelected = selectedSize === size;
-            const isDisabled = selectedColor && !isAvailable;
+            const isDisabled = !available || stock <= 0;
 
             return (
               <li
                 key={size}
                 onClick={() => !isDisabled && handleSizeSelect(size)}
                 className={`
-                  w-10 h-10 flex items-center justify-center text-sm font-medium 
+                  relative w-10 h-10 flex items-center justify-center text-sm font-medium 
                   rounded-full cursor-pointer transition select-none
                   ${
                     isDisabled
-                      ? "bg-gray-200 text-gray-500 line-through cursor-not-allowed"
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                       : isSelected
                       ? "bg-black text-white ring-2 ring-orange-400"
                       : "text-gray-500 ring-1 ring-gray-400 hover:text-gray-800 hover:ring-gray-800"
@@ -161,24 +223,12 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
                 `}
               >
                 {size}
+                {isDisabled && (
+                  <div className="absolute w-full h-px bg-gray-500 top-1/2 transform -rotate-45" />
+                )}
               </li>
             );
           })}
-        </div>
-
-        {/* Second Wishlist Button */}
-        <div
-          onClick={handleWishlist}
-          className="page-sec-wished flex items-center gap-2 cursor-pointer group"
-        >
-          <span className="text-sm text-gray-700 group-hover:text-black transition">
-            Add to Wishlist
-          </span>
-          <Heart
-            className={`w-5 h-5 ${
-              wished ? "fill-red-500 text-red-600 heart-popup" : "text-gray-400"
-            }`}
-          />
         </div>
       </ul>
     </div>

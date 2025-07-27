@@ -1,8 +1,21 @@
+interface ProductTag {
+  id: string;
+  tag: TagType;
+}
+
+interface TagType {
+  id: string;
+  name: string;
+  slug: string;
+  parent?: {
+    name: string;
+  };
+}
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
-  category: string;
   description?: string;
   price: number;
   image: string[];
@@ -12,7 +25,12 @@ export interface Product {
   images?: { url: string; id: string }[];
   color?: string;
   size: string;
-  variantCombinations: VariantCombination[]; // changed from string[] to proper type
+  variantCombinations?: VariantCombination[];
+  category?: {
+    name: string;
+  };
+  productTags?: ProductTag[];
+  
 }
 
 

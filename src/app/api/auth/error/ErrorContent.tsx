@@ -32,7 +32,7 @@ export default function ErrorContent() {
       <h2 className="text-xl font-semibold mb-4">Authentication Error</h2>
       <p className="mb-4">{getErrorMessage(error)}</p>
       <button
-        onClick={() => (window.location.href = "/auth/signin")}
+        onClick={() => (window.location.href = "/login")}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
       >
         Return to Sign In

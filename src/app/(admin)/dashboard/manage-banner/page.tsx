@@ -2,7 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Card } from "@/components/ui/card";
+import { useSession } from "next-auth/react";
 interface Banner {
   id: string;
   title: string;
@@ -15,11 +28,13 @@ interface Banner {
 }
 
 export default function ManageBanners() {
+  const {data:session} = useSession()
   const [banners, setBanners] = useState<Banner[]>([]);
   const [form, setForm] = useState<Partial<Banner>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const fetchBanners = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos`);
@@ -57,14 +72,16 @@ export default function ManageBanners() {
     setForm({});
     setImageFile(null);
     setEditingId(null);
-    await fetchBanners();
     setLoading(false);
+    setOpen(false);
+    await fetchBanners();
   };
 
   const handleEdit = (banner: Banner) => {
     setForm(banner);
     setEditingId(banner.id);
     setImageFile(null);
+    setOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -86,125 +103,161 @@ export default function ManageBanners() {
     );
     fetchBanners();
   };
-
+  if (!session || session.user.isAdmin !== true) {
+    return (
+      <div className="text-center text-destructive mt-10 text-lg font-semibold">
+        Access denied.
+      </div>
+    );
+  }
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        {editingId ? "Edit Banner" : "Create New Banner"}
-      </h1>
+    <div className="p-8 max-w-6xl mx-auto space-y-8">
+      <div className="flex items-center gap-10 justify-between">
+        <h1 className="text-2xl font-bold">Manage Banners</h1>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={() => {
+                setForm({});
+                setEditingId(null);
+                setOpen(true);
+              }}
+            >
+              + Add Banner
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                {editingId ? "Edit Banner" : "Create Banner"}
+              </DialogTitle>
+              <DialogDescription>
+                Fill in the details and save to{" "}
+                {editingId ? "update" : "create"} a banner.
+              </DialogDescription>
+            </DialogHeader>
 
-      <div className="space-y-4 border p-6 rounded bg-gray-50">
-        <input
-          placeholder="Title"
-          value={form.title || ""}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          placeholder="Subheading"
-          value={form.subheading || ""}
-          onChange={(e) => setForm({ ...form, subheading: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-        <textarea
-          placeholder="Paragraph"
-          value={form.paragraph || ""}
-          onChange={(e) => setForm({ ...form, paragraph: e.target.value })}
-          className="w-full p-2 border rounded resize-none"
-        />
-        <input
-          placeholder="Link URL"
-          value={form.linkUrl || ""}
-          onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="number"
-          placeholder="Position"
-          value={form.position ?? ""}
-          onChange={(e) =>
-            setForm({ ...form, position: Number(e.target.value) })
-          }
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) setImageFile(file);
-          }}
-          className="w-full p-2 border rounded"
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {loading
-            ? "Saving..."
-            : editingId
-            ? "Update Banner"
-            : "Create Banner"}
-        </button>
+            <div className="space-y-4">
+              <Input
+                placeholder="Title"
+                value={form.title || ""}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+              <Input
+                placeholder="Subheading"
+                value={form.subheading || ""}
+                onChange={(e) =>
+                  setForm({ ...form, subheading: e.target.value })
+                }
+              />
+              <Textarea
+                placeholder="Paragraph"
+                value={form.paragraph || ""}
+                onChange={(e) =>
+                  setForm({ ...form, paragraph: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Link URL"
+                value={form.linkUrl || ""}
+                onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+              />
+              <Input
+                type="number"
+                placeholder="Position"
+                value={form.position ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, position: Number(e.target.value) })
+                }
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setImageFile(file);
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={form.active ?? true}
+                  onCheckedChange={(value) =>
+                    setForm({ ...form, active: value })
+                  }
+                />
+                <span>Active</span>
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading
+                  ? "Saving..."
+                  : editingId
+                  ? "Update Banner"
+                  : "Create Banner"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <h2 className="text-xl font-semibold mt-10 mb-4">Current Banners</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {banners.map((banner) => (
-          <div
-            key={banner.id}
-            className="border p-4 rounded shadow-sm bg-white"
-          >
+          <Card key={banner.id} className="overflow-hidden">
             <Image
               src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}`}
               alt={banner.title}
               width={400}
-              height={200}
-              className="rounded object-cover mb-2"
+              height={400}
+              className="w-full h-100 object-top object-cover"
             />
-            <div className="text-lg font-medium">{banner.title}</div>
-            {banner.subheading && (
-              <div className="text-md text-gray-800 font-semibold">
-                {banner.subheading}
+            <div className="p-4 space-y-1">
+              <div className="font-semibold text-lg">{banner.title}</div>
+              {banner.subheading && (
+                <div className="text-sm text-gray-700">{banner.subheading}</div>
+              )}
+              {banner.paragraph && (
+                <p className="text-sm text-gray-500">{banner.paragraph}</p>
+              )}
+              <div className="text-sm text-muted-foreground">
+                Link: {banner.linkUrl}
               </div>
-            )}
-            {banner.paragraph && (
-              <p className="text-sm text-gray-500 mt-1">{banner.paragraph}</p>
-            )}
-            <div className="text-sm text-gray-600">Link: {banner.linkUrl}</div>
-            <div className="text-sm text-gray-600">
-              Position: {banner.position}
+              <div className="text-sm">Position: {banner.position}</div>
+              <div className="text-sm">
+                Status:{" "}
+                <span
+                  className={banner.active ? "text-green-600" : "text-red-600"}
+                >
+                  {banner.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="flex gap-3 mt-3 text-sm">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(banner)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toggleActive(banner)}
+                >
+                  Toggle
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(banner.id)}
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-            <div className="text-sm">
-              Status:{" "}
-              <span
-                className={banner.active ? "text-green-600" : "text-red-600"}
-              >
-                {banner.active ? "Active" : "Inactive"}
-              </span>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button
-                onClick={() => handleEdit(banner)}
-                className="text-blue-600 text-sm"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => toggleActive(banner)}
-                className="text-yellow-600 text-sm"
-              >
-                Toggle
-              </button>
-              <button
-                onClick={() => handleDelete(banner.id)}
-                className="text-red-600 text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

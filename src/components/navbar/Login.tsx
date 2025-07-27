@@ -107,9 +107,11 @@ const Login = () => {
       await signIn("google", {
         callbackUrl: `${window.location.origin}`,
       });
-    } catch (error) {
+      setShowLoginModal(false);
+      router.refresh();
+    } catch{
       toast.error("Google login failed");
-      console.log(error)
+      
     }
   };
 

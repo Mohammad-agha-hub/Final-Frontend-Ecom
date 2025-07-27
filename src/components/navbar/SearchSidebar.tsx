@@ -3,25 +3,24 @@
 import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
-import { AllProducts } from "../utilities/ClothesData";
 import { Product } from "../utilities/types";
 import { useSidebarStore } from "@/utils/SidebarStore";
 
-const SearchSidebar = () => {
+
+const SearchSidebar =({products}:{products:Product[]}) => {
   const { openSidebar, closeSidebar } = useSidebarStore();
   const isOpen = openSidebar === "search";
-
   const [search, setSearch] = useState("");
   const [filteredItems, setFilteredItems] = useState<Product[]>([]);
   const sidebarRef = useRef<HTMLDivElement>(null);
-
+ 
   // Filter products on search change
   useEffect(() => {
-    const filtered = AllProducts.filter((product) =>
+    const filtered = products.filter((product) =>
       product.name.toLowerCase().includes(search.toLowerCase())
     );
     setFilteredItems(filtered);
-  }, [search]);
+  }, [search,products]);
 
   // Close sidebar on outside click
   useEffect(() => {
@@ -79,7 +78,7 @@ const SearchSidebar = () => {
               filteredItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-3 border-b pb-3">
                   <Image
-                    src={item.image[0]}
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.image}`}
                     alt={item.name}
                     width={57}
                     height={42}

@@ -2,6 +2,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions} from '../../../../../auth.config'
 import EditProductForm from "@/components/admin/EditProductForm";
+import { redirect } from "next/navigation";
 
 export default async function EditProductPage({
   params
@@ -10,13 +11,9 @@ export default async function EditProductPage({
 }) {
   const {id} = await params
   const session = await getServerSession(authOptions);
-  if (!session) {
-    return (
-      <div className="p-6 text-red-500">
-        You must be logged in to view this page.
-      </div>
-    );
-  }
+   if (!session || session.user.isAdmin !== true) {
+     return redirect("/");
+   }
 
   const backendToken = session.user.backendToken;
 
@@ -47,19 +44,14 @@ export default async function EditProductPage({
     const productData = await productRes.json();
     const categoriesData = await categoriesRes.json();
     const tagsData = await tagsRes.json();
-    const variantOptions = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/variants`
-    )
-      .then((res) => res.json())
-      .then((data) => data.variants);
-
+    
     return (
       <EditProductForm
         product={productData.product}
         categories={categoriesData.categories}
         tags={tagsData.tags}
         token={backendToken}
-        variantOptions = {variantOptions}
+        
       />
     );
   } catch (err) {

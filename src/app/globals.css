@@ -113,50 +113,7 @@ body.scroll-lock {
   }
 }
 
-/* Cart Button Visibility Based on Screen Width */
-@media (min-width: 866px) {
-  .cart-btn {
-    display: none;
-  }
 
-  .first-cart-btn {
-    display: block;
-    margin-left: 20px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 865px) {
-  .cart-btn {
-    display: block;
-  }
-
-  .first-cart-btn {
-    display: none;
-    margin-left: 20px;
-  }
-}
-
-@media (min-width: 431px) and (max-width: 767px) {
-  .cart-btn {
-    display: none;
-  }
-
-  .first-cart-btn {
-    display: block;
-    margin-left: 20px;
-  }
-}
-
-@media (max-width: 430px) {
-  .cart-btn {
-    display: block;
-  }
-
-  .first-cart-btn {
-    display: none;
-    margin-left: 20px;
-  }
-}
 
 /* Checkout Padding */
 @media (min-width: 653px) and (max-width: 1023px) {
@@ -165,58 +122,6 @@ body.scroll-lock {
   }
 }
 
-/* Wish Page Toggle by Width */
-@media (max-width: 500px) {
-  .page-first-wished {
-    display: flex;
-  }
-
-  .page-sec-wished {
-    display: none;
-  }
-}
-
-@media (min-width: 501px) {
-  .page-first-wished {
-    display: none;
-  }
-
-  .page-sec-wished {
-    display: flex;
-  }
-}
-
-/* Button Toggle by Width */
-@media (max-width: 440px) {
-  .page-first-btn {
-    display: none;
-  }
-
-  .page-second-btn {
-    display: block;
-  }
-}
-
-@media (min-width: 441px) {
-  .page-first-btn {
-    display: block;
-  }
-
-  .page-second-btn {
-    display: none;
-  }
-}
-
-/* Wish Layout for Medium+ Screens */
-@media (min-width: 1024px) and (max-width: 1132px) {
-  .page-first-wished {
-    display: flex;
-  }
-
-  .page-sec-wished {
-    display: none;
-  }
-}
 
 /* Theme & Color Variables */
 @theme inline {

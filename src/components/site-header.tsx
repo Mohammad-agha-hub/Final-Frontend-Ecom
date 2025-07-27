@@ -25,9 +25,6 @@ export function SiteHeader() {
           <Button variant="ghost" className="text-sm cursor-pointer" onClick={()=>router.push('/')}>
             Home
           </Button>
-          <Button variant="ghost" className="text-sm cursor-pointer" onClick={()=>router.push('/cart')}>
-            Cart
-          </Button>
           <Button variant="ghost" className="text-sm cursor-pointer" onClick={()=>router.push('/checkout')}>
             Checkout
           </Button>

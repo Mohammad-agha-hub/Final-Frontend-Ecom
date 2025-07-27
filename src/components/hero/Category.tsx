@@ -1,27 +1,45 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import Image from 'next/image';
-import { AnimatePresence, motion } from 'framer-motion';
-import { categoryData } from '@/components/utilities/categoryData';
-import Link from 'next/link';
+import React, { useState, useRef } from "react";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 
-// Mapping for images per main category (you can customize these)
 const categoryImages: Record<string, string> = {
-  Women: '/cloth2a.png',
-  Men: '/cloth3a.png',
-  Kids: '/cloth4a.png',
-  Accessories: '/cloth5a.png',
-  Sale: '/cloth6a.png',
-  'Just In': '/cloth7a.png',
+  Women: "/cloth2a.png",
+  Men: "/cloth3a.png",
+  Kids: "/cloth4a.png",
+  Accessories: "/cloth5a.png",
+  Sale: "/cloth6a.png",
+  "Just In": "/cloth7a.png",
 };
+interface SubTag {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+  children?: SubTag[];
+}
+
+interface CategoryType {
+  id: string;
+  name: string;
+}
 
 const MegaMenu = ({
   category,
+  tags,
   onMouseEnter,
   onMouseLeave,
 }: {
-  category: typeof categoryData[number];
+  category: CategoryType;
+  tags: Tag[];
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) => {
@@ -38,9 +56,9 @@ const MegaMenu = ({
       <div className="w-screen overflow-hidden flex justify-center">
         <div className="px-12 py-8 flex justify-center">
           <div className="grid grid-cols-[280px_1fr] gap-30 items-start max-w-[1600px] w-full">
-            <div className="relative rounded overflow-hidden ">
+            <div className="relative rounded overflow-hidden">
               <Image
-                src={categoryImages[category.name] || '/placeholder.jpg'}
+                src={categoryImages[category.name] || "/placeholder.jpg"}
                 alt={category.name}
                 width={200}
                 height={300}
@@ -48,16 +66,20 @@ const MegaMenu = ({
               />
             </div>
             <div className="grid grid-cols-5 gap-20 place-items-start w-full">
-              {category.children.map((sub, index) => (
-                <div key={index} className="text-center">
-                  <h4 className="text-base font-semibold mb-2 text-gray-800">{sub.name}</h4>
+              {tags.map((tag, index) => (
+                <div key={tag.id || index} className="text-left">
+                  <h4 className="text-base font-semibold mb-2 text-gray-800">
+                    {tag.name}
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {sub.children.map((item, i) => (
-                      <Link key={i} href={`/collections/${item.name}`}>
-                      <li key={i} className="cursor-pointer hover:text-black">
-                        {item.name}
+                    {tag.children?.map((sub: SubTag) => (
+                      <li key={sub.id}>
+                        <Link href={`/collections/${encodeURIComponent(category.name)}/${encodeURIComponent(tag.slug)}/${encodeURIComponent(sub.slug)}`}>
+                          <span className="cursor-pointer hover:text-black">
+                            {sub.name}
+                          </span>
+                        </Link>
                       </li>
-                      </Link>
                     ))}
                   </ul>
                 </div>
@@ -70,7 +92,13 @@ const MegaMenu = ({
   );
 };
 
-const Category = () => {
+const Category = ({
+  categories,
+  tagsByCategoryId,
+}: {
+  categories: CategoryType[];
+  tagsByCategoryId: Record<string, Tag[]>;
+}) => {
   const [hovered, setHovered] = useState<string | null>(null);
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -88,16 +116,16 @@ const Category = () => {
   return (
     <div className="hidden md:flex justify-center relative mt-3 mb-3">
       <div className="border border-gray-200 w-[80vw] max-w-none flex justify-center items-center px-4 gap-10 h-14 relative">
-        {categoryData.map((cat) => (
+        {categories.map((cat) => (
           <div
-            key={cat.name}
+            key={cat.id || cat.name}
             className="relative h-full flex pt-4"
             onMouseEnter={() => handleMouseEnter(cat.name)}
             onMouseLeave={handleMouseLeave}
           >
             <span
               className={`cursor-pointer pb-4 text-base font-medium ${
-                cat.name === 'Sale' ? 'text-[#8d1c1c]' : ''
+                cat.name === "Sale" ? "text-[#8d1c1c]" : ""
               } hover:text-gray-500`}
             >
               {cat.name}
@@ -106,6 +134,7 @@ const Category = () => {
               {hovered === cat.name && (
                 <MegaMenu
                   category={cat}
+                  tags={tagsByCategoryId[cat.id] || []}
                   onMouseEnter={() => setHovered(cat.name)}
                   onMouseLeave={handleMouseLeave}
                 />

@@ -77,15 +77,6 @@ export const UserDropdown = () => {
           >
             Track Orders
           </Link>
-
-          <Link
-            href="/cart"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
-            onClick={() => setIsOpen(false)}
-          >
-            My Cart
-          </Link>
-
           <button
             onClick={() => {
               setIsOpen(false);

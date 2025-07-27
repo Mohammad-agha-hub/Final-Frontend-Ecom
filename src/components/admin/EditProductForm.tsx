@@ -1,9 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { FiTrash2 } from "react-icons/fi";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { Button } from "../../components/ui/button";
+import { Select } from "../../components/ui/select";
+import {
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "../../components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Loader2 } from "lucide-react";
 
 interface Tag {
   id: string;
@@ -25,70 +41,43 @@ interface Product {
   stock: number;
   discount: number;
   categoryId: string;
-  image: string;
   tags: Tag[];
-  variantCombinations: {
-    id: string;
-    stock: number;
-    price: number;
-    image: string | null;
-    variants: { variant: { key: string; value: string } }[];
-  }[];
+  images: { id: string; url: string }[];
 }
-
-interface VariantCombo {
-  id?: string;
-  variants: Record<string, string>;
-  price: number;
-  stock: number;
-  image?: string | File;
-}
-
-interface Variant {
-  id: string;
-  key: string;
-  value: string;
-}
-
-type VariantOptions = Record<string, Variant[]>;
 
 export default function EditProductClient({
   product,
   categories,
   tags,
   token,
-  variantOptions,
 }: {
   product: Product;
   categories: Category[];
   tags: Tag[];
   token: string | undefined;
-  variantOptions: VariantOptions;
 }) {
   const router = useRouter();
+
+  const dedupedTags = Array.from(
+    new Map(tags.map((t) => [t.name, t])).values()
+  );
 
   const [form, setForm] = useState<Product>({
     ...product,
     tags: product.tags ?? [],
-    variantCombinations: product.variantCombinations ?? [],
   });
 
-  const [mainImage, setMainImage] = useState<string | File>(product.image);
-
-  const [combos, setCombos] = useState<VariantCombo[]>(
-    product.variantCombinations.map((vc) => ({
-      id: vc.id,
-      price: vc.price,
-      stock: vc.stock,
-      image: vc.image || "",
-      variants: Object.fromEntries(
-        vc.variants.map((v) => [v.variant.key, v.variant.value])
-      ),
-    }))
+  const [images, setImages] = useState<(File | { url: string })[]>(
+    product.images || []
   );
-
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateField = <K extends keyof Product>(key: K, value: Product[K]) => {
     setForm({ ...form, [key]: value });
@@ -98,98 +87,57 @@ export default function EditProductClient({
     const exists = form.tags.some((t) => t.id === id);
     const updated = exists
       ? form.tags.filter((t) => t.id !== id)
-      : [...form.tags, tags.find((t) => t.id === id)!];
+      : [...form.tags, dedupedTags.find((t) => t.id === id)!];
     setForm({ ...form, tags: updated });
   };
 
-  const addCombo = () => {
-    const defaultVariants = Object.fromEntries(
-      Object.keys(variantOptions).map((key) => [key, ""])
-    );
-    setCombos([...combos, { variants: defaultVariants, price: 0, stock: 0 }]);
-  };
-
-  const removeCombo = (idx: number) => {
-    setCombos(combos.filter((_, i) => i !== idx));
-  };
-
-  const updateCombo = (
-    idx: number,
-    field: keyof VariantCombo,
-    value: VariantCombo[typeof field]
-  ) => {
-    const updated = [...combos];
-    updated[idx] = { ...updated[idx], [field]: value };
-    setCombos(updated);
-  };
-  
-
-  const updateComboVariant = (idx: number, key: string, value: string) => {
-    const updated = [...combos];
-    updated[idx].variants[key] = value;
-    setCombos(updated);
-  };
-
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setMainImage(file);
+    const files = Array.from(e.target.files || []);
+    const validImages = files.filter((file) => file.type.startsWith("image/"));
+    if (validImages.length > 0) {
+      setImages([...images, ...validImages]);
     } else {
-      alert("Please select a valid image file.");
+      alert("Please select valid image files.");
     }
   };
 
   const saveProduct = async () => {
+    const { name, slug, description, price, categoryId } = form;
+    if (
+      !name ||
+      !slug ||
+      !description ||
+      !price ||
+      !categoryId ||
+      form.tags.length === 0
+    ) {
+      alert(
+        "Fill in all the required fields and select at least one tag and subtag"
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       const fd = new FormData();
-
-      type FormKey =
-        | "name"
-        | "slug"
-        | "description"
-        | "price"
-        | "stock"
-        | "discount"
-        | "categoryId";
-
-      (
-        [
-          "name",
-          "slug",
-          "description",
-          "price",
-          "stock",
-          "discount",
-          "categoryId",
-        ] as FormKey[]
-      ).forEach((key) => {
-        fd.append(key, String(form[key]));
-      });
-
+      const keys: (keyof Product)[] = [
+        "name",
+        "slug",
+        "description",
+        "price",
+        "discount",
+        "categoryId",
+      ];
+      keys.forEach((key) => fd.append(key, String(form[key])));
       form.tags.forEach((t) => fd.append("tagIds", t.id));
-
-      const serializedCombos = combos.map((combo, index) => {
-        const { image, ...rest } = combo;
-        if (image instanceof File) {
-          fd.append("comboImages", image);
-          return { ...rest, image: `__upload__comboImages__${index}` };
+      images.forEach((img) => {
+        if (img instanceof File) {
+          fd.append("images", img);
         }
-        return { ...rest, image };
       });
-
-      const validCombos = serializedCombos.filter((combo) =>
-        Object.values(combo.variants).every((v) => v.trim() !== "")
-      );
-
-      fd.append("combinations", JSON.stringify(validCombos));
-
-      if (mainImage instanceof File) {
-        fd.append("image", mainImage);
-      }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/${form.id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/details/${form.id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -228,232 +176,195 @@ export default function EditProductClient({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-6 py-8 space-y-6">
-      <h1 className="text-2xl font-bold">Edit Product</h1>
-
-      {mainImage && (
-        <div className="flex justify-center">
-          <Image
-            src={
-              typeof mainImage === "string"
-                ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${mainImage}`
-                : URL.createObjectURL(mainImage)
-            }
-            alt="Product"
-            className="object-cover rounded"
-            width={240}
-            height={240}
-          />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label>Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => updateField("name", e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label>Slug</label>
-          <input
-            value={form.slug}
-            onChange={(e) => updateField("slug", e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label>Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => updateField("description", e.target.value)}
-            rows={3}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label>Change Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImage}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label>Price</label>
-          <input
-            type="number"
-            value={form.price}
-            onChange={(e) => updateField("price", Number(e.target.value))}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label>Stock</label>
-          <input
-            type="number"
-            value={form.stock}
-            onChange={(e) => updateField("stock", Number(e.target.value))}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label>Discount (%)</label>
-          <input
-            type="number"
-            value={form.discount}
-            onChange={(e) => updateField("discount", Number(e.target.value))}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label>Category</label>
-          <select
-            value={form.categoryId}
-            onChange={(e) => updateField("categoryId", e.target.value)}
-            className="w-full border p-2 rounded"
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Product</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <form
+            className="space-y-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveProduct();
+            }}
           >
-            <option value="">Select</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="block font-medium mb-1">Tags (Parent)</label>
-        <div className="flex flex-wrap gap-2 overflow-x-auto whitespace-nowrap mb-4">
-          {tags
-            .filter((tag) => !tag.parent)
-            .map((tag) => {
-              const selected = form.tags.some((t) => t.id === tag.id);
-              return (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`px-3 py-1 rounded-full text-sm shrink-0 ${
-                    selected ? "bg-blue-600 text-white" : "bg-gray-200"
-                  }`}
-                  type="button"
-                >
-                  {tag.name}
-                </button>
-              );
-            })}
-        </div>
-
-        <label className="block font-medium mb-1">Subtags</label>
-        <div className="flex flex-wrap gap-2 overflow-x-auto whitespace-nowrap">
-          {tags
-            .filter((tag) => tag.parent)
-            .map((tag) => {
-              const selected = form.tags.some((t) => t.id === tag.id);
-              return (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`px-3 py-1 rounded-full text-sm shrink-0 ${
-                    selected ? "bg-purple-600 text-white" : "bg-gray-200"
-                  }`}
-                  type="button"
-                >
-                  {tag.name}
-                </button>
-              );
-            })}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-semibold mb-2">Variant Combinations</h3>
-        {combos.map((combo, idx) => (
-          <div key={idx} className="border rounded p-4 mb-3 space-y-2">
-            <div className="flex justify-between">
-              <span className="font-medium">Variant {idx + 1}</span>
-              <FiTrash2
-                onClick={() => removeCombo(idx)}
-                className="text-red-600 cursor-pointer"
-              />
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {Object.keys(variantOptions)
-                .sort()
-                .map((key) => (
-                  <div key={key}>
-                    <label className="text-sm">{key}</label>
-                    <select
-                      value={combo.variants[key]}
-                      onChange={(e) =>
-                        updateComboVariant(idx, key, e.target.value)
-                      }
-                      className="w-full border p-2 rounded"
-                    >
-                      <option value="">Select {key}</option>
-                      {variantOptions[key]?.map((v) => (
-                        <option key={v.id} value={v.value}>
-                          {v.value}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+            {images.length > 0 && (
+              <div className="flex gap-4 flex-wrap justify-center">
+                {images.map((img, idx) => (
+                  <Image
+                    key={idx}
+                    src={
+                      img instanceof File
+                        ? URL.createObjectURL(img)
+                        : `${process.env.NEXT_PUBLIC_BACKEND_URL}${img.url}`
+                    }
+                    alt="Product Image"
+                    width={160}
+                    height={160}
+                    className="rounded object-cover border"
+                  />
                 ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm">Price</label>
-                <input
-                  type="number"
-                  value={combo.price}
-                  onChange={(e) =>
-                    updateCombo(idx, "price", Number(e.target.value))
-                  }
-                  className="w-full border p-2 rounded"
+                <label className="block text-sm font-medium mb-1">
+                  Product Name
+                </label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => updateField("name", e.target.value)}
+                  placeholder="Product name"
                 />
               </div>
+
               <div>
-                <label className="text-sm">Stock</label>
-                <input
-                  type="number"
-                  value={combo.stock}
-                  onChange={(e) =>
-                    updateCombo(idx, "stock", Number(e.target.value))
-                  }
-                  className="w-full border p-2 rounded"
+                <label className="block text-sm font-medium mb-1">Slug</label>
+                <Input
+                  value={form.slug}
+                  onChange={(e) => updateField("slug", e.target.value)}
+                  placeholder="Slug"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">
+                  Description
+                </label>
+                <Textarea
+                  value={form.description}
+                  onChange={(e) => updateField("description", e.target.value)}
+                  placeholder="Description"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Images</label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImage}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Price</label>
+                <Input
+                  type="number"
+                  value={form.price}
+                  onChange={(e) => updateField("price", Number(e.target.value))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Discount (%)
+                </label>
+                <Input
+                  type="number"
+                  value={form.discount}
+                  onChange={(e) =>
+                    updateField("discount", Number(e.target.value))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Category
+                </label>
+                <Select
+                  onValueChange={(value) => updateField("categoryId", value)}
+                  value={form.categoryId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
-        ))}
-        <button
-          className="text-blue-600 font-medium mt-2"
-          type="button"
-          onClick={addCombo}
-        >
-          + Add Combination
-        </button>
-      </div>
 
-      <div className="flex gap-10">
-        <button
-          onClick={saveProduct}
-          disabled={saving}
-          className="bg-black text-white px-6 py-2 rounded"
-        >
-          {saving ? "Saving..." : "Save Product"}
-        </button>
-        <button
-          onClick={deleteProduct}
-          disabled={deleting}
-          className="bg-red-500 text-white px-6 py-2 rounded"
-        >
-          {deleting ? "Deleting..." : "Delete Product"}
-        </button>
-      </div>
+            <div>
+              <label className="block font-semibold mb-1">Tags</label>
+              <div className="flex flex-wrap gap-2">
+                {dedupedTags
+                  .filter((tag) => !tag.parent)
+                  .map((tag) => {
+                    const selected = form.tags.some((t) => t.id === tag.id);
+                    return (
+                      <Button
+                        key={tag.id}
+                        variant={selected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleTag(tag.id)}
+                        className="rounded-full"
+                        type="button"
+                      >
+                        {tag.name}
+                      </Button>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">Subtags</label>
+              <div className="flex flex-wrap gap-2">
+                {dedupedTags
+                  .filter((tag) => tag.parent)
+                  .map((tag) => {
+                    const selected = form.tags.some((t) => t.id === tag.id);
+                    return (
+                      <Button
+                        key={tag.id}
+                        variant={selected ? "secondary" : "outline"}
+                        size="sm"
+                        onClick={() => toggleTag(tag.id)}
+                        className="rounded-full"
+                        type="button"
+                      >
+                        {tag.name}
+                      </Button>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save Product"}
+              </Button>
+              <Button
+                type="button"
+                onClick={deleteProduct}
+                variant="destructive"
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete Product"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

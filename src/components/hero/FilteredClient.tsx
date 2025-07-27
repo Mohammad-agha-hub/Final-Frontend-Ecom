@@ -32,10 +32,10 @@ export default function ClientSlider({
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: false,
-    slides: { perView: 9, spacing: 16 },
+    slides: { perView: 9, spacing: 20 },
     breakpoints: {
       "(max-width: 1597px)": { slides: { perView: 8, spacing: 20 } },
-      "(max-width: 1527px)": { slides: { perView: 7, spacing: 20 } },
+      "(max-width: 1527px)": { slides: { perView: 7, spacing: 18 } },
       "(max-width: 1024px)": { slides: { perView: 5, spacing: 17 } },
       "(max-width: 768px)": { slides: { perView: 3, spacing: 15 } },
       "(max-width: 480px)": { slides: { perView: 2, spacing: 10 } },
@@ -67,7 +67,7 @@ export default function ClientSlider({
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=${newPage}&limit=${LIMIT}`
       );
       const data = await res.json();
       const newProducts = Array.isArray(data) ? data : data.products || [];
@@ -75,9 +75,11 @@ export default function ClientSlider({
       if (newProducts.length < LIMIT) {
         setHasMore(false);
       }
-
-      setProducts((prev) => [...prev, ...newProducts]);
-      setPage(newPage);
+      if(newProducts.length>0){
+        setProducts((prev) => [...prev, ...newProducts]);
+        setPage(newPage);
+      }
+    
     } catch (err) {
       console.error("Failed to fetch products", err);
     } finally {

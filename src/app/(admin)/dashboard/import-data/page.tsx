@@ -1,10 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import { FiUpload, FiX, FiCheck } from "react-icons/fi";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import * as XLSX from "xlsx";
+
+// Dynamic icon imports
+const FiUpload = dynamic(() =>
+  import("react-icons/fi").then((mod) => mod.FiUpload)
+);
+const FiX = dynamic(() => import("react-icons/fi").then((mod) => mod.FiX));
+const FiCheck = dynamic(() =>
+  import("react-icons/fi").then((mod) => mod.FiCheck)
+);
 
 type ProductRow = Record<string, string | number | boolean | null>;
 
@@ -14,13 +21,18 @@ export default function ProductImportPage() {
   const [previewData, setPreviewData] = useState<ProductRow[]>([]);
   const { data: session } = useSession();
 
+  const lazyToast = async (type: "success" | "error", message: string) => {
+    const { toast } = await import("react-toastify");
+    toast[type](message);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       const fileExt = selectedFile.name.split(".").pop()?.toLowerCase();
 
       if (!["xlsx", "xls", "csv"].includes(fileExt || "")) {
-        toast.error("Only Excel/CSV files are allowed (xlsx, xls, csv)");
+        lazyToast("error", "Only Excel/CSV files are allowed (xlsx, xls, csv)");
         return;
       }
 
@@ -29,12 +41,14 @@ export default function ProductImportPage() {
     }
   };
 
-  const previewFile = (file: File) => {
+  const previewFile = async (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+
+    reader.onload = async (e) => {
       try {
         const data = e.target?.result;
         if (data) {
+          const XLSX = await import("xlsx");
           const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
@@ -43,9 +57,10 @@ export default function ProductImportPage() {
         }
       } catch (error) {
         console.error("Preview error:", error);
-        toast.error("Failed to preview file");
+        lazyToast("error", "Failed to preview file");
       }
     };
+
     reader.readAsBinaryString(file);
   };
 
@@ -74,14 +89,18 @@ export default function ProductImportPage() {
         throw new Error(data.message || "Import failed");
       }
 
-      toast.success(
+      await lazyToast(
+        "success",
         `Successfully imported ${data.data?.length || 0} products!`
       );
       setFile(null);
       setPreviewData([]);
     } catch (error) {
       console.error("Import error:", error);
-      toast.error(error instanceof Error ? error.message : "Import failed");
+      await lazyToast(
+        "error",
+        error instanceof Error ? error.message : "Import failed"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -91,30 +110,34 @@ export default function ProductImportPage() {
     setFile(null);
     setPreviewData([]);
   };
-
+  if (!session || session.user.isAdmin !== true) {
+    return (
+      <div className="text-center text-destructive mt-10 text-lg font-semibold">
+        Access denied.
+      </div>
+    );
+  }
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h2 className="text-xl font-bold mb-6">Import Products</h2>
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
         {!file ? (
-          <div>
-            <label className="cursor-pointer">
-              <div className="flex flex-col items-center justify-center gap-2">
-                <FiUpload className="text-3xl text-gray-400" />
-                <p className="font-medium">Upload Excel/CSV File</p>
-                <p className="text-sm text-gray-500">
-                  Supports .xlsx, .xls, .csv formats
-                </p>
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
-            </label>
-          </div>
+          <label className="cursor-pointer">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <FiUpload className="text-3xl text-gray-400" />
+              <p className="font-medium">Upload Excel/CSV File</p>
+              <p className="text-sm text-gray-500">
+                Supports .xlsx, .xls, .csv formats
+              </p>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+          </label>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
@@ -197,11 +220,13 @@ export default function ProductImportPage() {
         <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
           <li>First row should contain column headers</li>
           <li>
-            Supported columns: name, slug, price, image, stock, description,
-            category, tags
+            Supported columns:{" "}
+            <code>
+              name, price, images, description, category, tags and children tags, variant combinations
+            </code>
           </li>
           <li>Multiple tags should be comma-separated</li>
-          <li>Price and stock should be numbers</li>
+          <li>Price and discount should be numbers</li>
         </ul>
       </div>
     </div>

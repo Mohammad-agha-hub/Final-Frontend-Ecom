@@ -1,51 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { useSidebarStore } from "@/utils/SidebarStore";
+import Link from "next/link";
 
-type SidebarItemProps = {
-  label: string;
-  content: string[];
+interface Subtag {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+  children?: Subtag[];
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+const SubtagList = ({
+  subtags,
+  categoryName,
+  parentSlug,
+}: {
+  subtags: Subtag[];
+  categoryName: string;
+  parentSlug: string;
+}) => {
+  return (
+    <ul className="ml-4 mt-1 space-y-1">
+      {subtags.map((sub) => (
+        <li
+          key={sub.id}
+          className="text-sm text-gray-700 pl-4 py-1 rounded hover:bg-gray-100 cursor-pointer border-l border-gray-300"
+        >
+          <Link
+            href={`/collections/${encodeURIComponent(
+              categoryName
+            )}/${encodeURIComponent(parentSlug)}/${encodeURIComponent(
+              sub.slug
+            )}`}
+          >
+            {sub.name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
 };
 
-const SidebarItem = ({ label, content }: SidebarItemProps) => {
+const TagItem = ({ tag, categoryName }: { tag: Tag; categoryName: string }) => {
   const [open, setOpen] = useState(false);
+
+  const hasChildren = tag.children && tag.children.length > 0;
 
   return (
     <div className="w-full">
       <div
-        onClick={() => setOpen(!open)}
-        className={`flex justify-between items-center border-b border-gray-300 cursor-pointer text-gray-800 font-medium py-3 px-4 transition-all ${
-          open ? "bg-gray-100" : "hover:bg-gray-50"
-        }`}
+        onClick={() => {
+          if (hasChildren) setOpen((prev) => !prev);
+        }}
+        className="flex justify-between items-center cursor-pointer text-gray-800 font-medium py-2 px-4 hover:bg-gray-50 transition"
       >
-        <span className="font-semibold">{label}</span>
-        <span className="transition-transform duration-300">
-          {open ? (
-            <Minus size={18} className="text-gray-500" />
+        <span className="text-sm">{tag.name}</span>
+        {hasChildren ? (
+          open ? (
+            <Minus size={16} className="text-gray-500" />
           ) : (
-            <Plus size={18} className="text-gray-500" />
-          )}
-        </span>
+            <Plus size={16} className="text-gray-500" />
+          )
+        ) : null}
+      </div>
+      {open && hasChildren ? (
+        <SubtagList
+          subtags={tag.children!}
+          categoryName={categoryName}
+          parentSlug={tag.slug}
+        />
+      ) : null}
+    </div>
+  );
+};
+
+const CategoryItem = ({
+  category,
+  tags,
+}: {
+  category: Category;
+  tags: Tag[];
+}) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="w-full border-b border-gray-200">
+      <div
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex justify-between items-center cursor-pointer px-4 py-3 font-semibold text-gray-900 hover:bg-gray-100"
+      >
+        <span>{category.name}</span>
+        {open ? (
+          <Minus size={18} className="text-gray-500" />
+        ) : (
+          <Plus size={18} className="text-gray-500" />
+        )}
       </div>
 
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <ul className="bg-white px-2 py-2 flex flex-col gap-2">
-          {content.map((sub, i) => (
-            <li
-              key={i}
-              className="text-gray-800 text-sm py-2 px-2 rounded-md cursor-pointer hover:bg-gray-100 transition border-b border-gray-300"
-            >
-              {sub}
-            </li>
+      {open && (
+        <div className="pb-2">
+          {tags.map((tag) => (
+            <TagItem key={tag.id} tag={tag} categoryName={category.name} />
           ))}
-        </ul>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -54,17 +126,44 @@ const Sidebar = () => {
   const { openSidebar, closeSidebar } = useSidebarStore();
   const isOpen = openSidebar === "menu";
 
-  const menuItems = [
-    { label: "Just In", content: ["Pret", "Trending Now"] },
-    { label: "Women", content: ["Sarees", "Kurtis", "Jewellery"] },
-    { label: "Men", content: ["Shirts", "Trousers", "Ethnic Wear"] },
-    { label: "Accessories", content: ["Bags", "Footwear", "Watches"] },
-    { label: "Sale", content: ["Flat 50%", "Clearance Sale"] },
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tagsByCategoryId, setTagsByCategoryId] = useState<
+    Record<string, Tag[]>
+  >({});
+
+  useEffect(() => {
+    const fetchSidebarData = async () => {
+      try {
+        const [catRes, tagRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags`),
+        ]);
+
+        const catJson = await catRes.json();
+        const tagJson = await tagRes.json();
+
+        const categoriesData: Category[] = catJson.categories || [];
+        const tagsData: Tag[] = tagJson.tags || [];
+
+        const groupedTags: Record<string, Tag[]> = {};
+        tagsData.forEach((tag) => {
+          if (!groupedTags[tag.categoryId]) groupedTags[tag.categoryId] = [];
+          groupedTags[tag.categoryId].push(tag);
+        });
+
+        setCategories(categoriesData);
+        setTagsByCategoryId(groupedTags);
+      } catch (err) {
+        console.error("Failed to load sidebar data:", err);
+      }
+    };
+
+    fetchSidebarData();
+  }, []);
 
   return (
     <>
-      {/* Sidebar Panel */}
+      {/* Sidebar panel */}
       <div
         className={`fixed top-0 left-0 w-[80%] max-w-[320px] bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -77,10 +176,14 @@ const Sidebar = () => {
           <X onClick={closeSidebar} size={22} className="cursor-pointer" />
         </div>
 
-        {/* Menu Items */}
+        {/* Dynamic Content */}
         <div className="py-2">
-          {menuItems.map((item, idx) => (
-            <SidebarItem key={idx} label={item.label} content={item.content} />
+          {categories.map((category) => (
+            <CategoryItem
+              key={category.id}
+              category={category}
+              tags={tagsByCategoryId[category.id] || []}
+            />
           ))}
         </div>
       </div>

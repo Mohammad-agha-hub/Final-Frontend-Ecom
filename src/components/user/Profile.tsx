@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -17,7 +18,7 @@ export default function ProfilePage() {
     password: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter()
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -48,6 +49,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         toast.success('Profile updated!')
+        router.refresh()
       } else {
         toast.error('Failed to update profile!')
       }

@@ -2,7 +2,6 @@
 import { Heart } from 'lucide-react';
 import React, { useState } from 'react'
 import { useWishlistStore } from '@/utils/WishlistStore';
-// import { useSelectedSizeStore } from "@/utils/SizeStore";
 import { Product } from '../utilities/types';
 const sizes = ['Small','Medium','Large']
 const ProductCustomizeButton = ({product}:{product:Product}) => {
@@ -16,7 +15,7 @@ const ProductCustomizeButton = ({product}:{product:Product}) => {
         removeFromWishlist(product.id)
       }
       else{
-        addToWishlist({ ...product, price: product.price.toString() });
+        addToWishlist({ ...product, price: product.price });
       }
       setWished(!wished)
     }

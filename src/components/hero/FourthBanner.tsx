@@ -37,6 +37,7 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
           }
           alt={left.title}
           fill
+          sizes="(max-width: 768px) 50vw, 70vw"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-black/30 flex items-end justify-start xl:pl-16 lg:pl-12 md:pl-8 sm:pl-4 pb-6 text-white xl:text-2xl lg:text-xl text-[0.8rem] font-bold pl-5">
@@ -56,6 +57,7 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
           }
           alt={right.title}
           fill
+          sizes="(max-width: 768px) 50vw, 30vw"
           className="object-cover object-top"
         />
         <div className="absolute inset-0 bg-black/30 flex items-end justify-start xl:pl-14 lg:pl-10 md:pl-7 pb-6 text-white xl:text-xl lg:text-lg md:text-base sm:text-sm font-bold pl-5 text-[0.8rem]">

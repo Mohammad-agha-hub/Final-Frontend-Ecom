@@ -11,13 +11,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AllProducts } from "@/components/utilities/ClothesData";
 import Image from "next/image";
 import { Product } from "@/components/utilities/types";
 import { useSidebarStore } from "@/utils/SidebarStore";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { UserDropdown } from "../user/UserDropdown";
+import { useCartStore } from "@/utils/CartStore";
 
 const Sidebar = dynamic(() => import("./Sidebar"), {
   ssr: false,
@@ -32,22 +32,23 @@ const CartSidebar = dynamic(() => import("./CartSidebar"), {
   loading: () => null,
 });
 
-export default function Navbar() {
+export default function Navbar({products}:{products:Product[]}) {
   const { showLoginModal, setShowLoginModal } = useAuthStore();
+  const {items} = useCartStore()
   const [search, setSearch] = useState("");
   const [searchFilter, setSearchFilter] = useState<Product[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { openSidebar, setOpenSidebar, closeSidebar } = useSidebarStore();
   const searchRef = useRef<HTMLDivElement>(null);
   const {status } = useSession();
-
+  
   useEffect(() => {
-    const filtered = AllProducts.filter((product) =>
+    const filtered = products.filter((product) =>
       product.name.toLowerCase().includes(search.toLowerCase())
     );
     setSearchFilter(filtered);
-  }, [search]);
-
+  }, [search,products]);
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -92,7 +93,7 @@ export default function Navbar() {
     <>
       {/* Sidebars */}
       <Sidebar />
-      <SearchSidebar />
+      <SearchSidebar products={products} />
       <CartSidebar />
 
       {/* Navbar */}
@@ -136,11 +137,16 @@ export default function Navbar() {
                 onClick={() => setShowLoginModal(!showLoginModal)}
               />
             )}
-            <ShoppingBag
-              onClick={() => setOpenSidebar("cart")}
-              size={22}
-              className="cursor-pointer"
-            />
+            <div className="relative">
+              <ShoppingBag
+                onClick={() => setOpenSidebar("cart")}
+                size={22}
+                className="cursor-pointer"
+              />
+              <div className="bg-black h-3 w-3 absolute -top-1 flex items-center pt-[1px] justify-center text-xs font-semibold -right-1 rounded-full text-white">
+                {items.reduce((count, item) => count + item.quantity, 0)}
+              </div>
+            </div>
           </div>
 
           {/* Desktop Nav Items */}
@@ -164,12 +170,16 @@ export default function Navbar() {
               {isSearchOpen && search && searchFilter.length > 0 && (
                 <div className="absolute top-full right-0 mt-2 xl:w-115 md:w-100 max-h-105 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-xl scrollbar-thin-gray z-999">
                   {searchFilter.map((product, index) => (
-                    <div
+                    <Link
+                      href={`/products/${product.slug}`}
                       key={index}
                       className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100/60 cursor-pointer transition-colors"
                     >
                       <Image
-                        src={product.image?.[0] || "/placeholder.png"}
+                        src={
+                          `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}` ||
+                          "/placeholder.png"
+                        }
                         alt={product.name}
                         width={75}
                         height={68}
@@ -180,19 +190,21 @@ export default function Navbar() {
                           {product.name}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500 font-medium text-[0.8rem] line-through">
+                          <span className={`text-gray-500 font-medium text-[0.8rem] ${product.discount>0?"line-through":""}`}>
                             RS {product.price}
                           </span>
-                          <span className="text-red-500 font-medium text-[0.8rem]">
-                            RS{" "}
-                            {Math.round(
-                              +product.price *
-                                (1 - (product.discount || 0) / 100)
-                            )}
-                          </span>
+                          {product.discount > 0 && (
+                            <span className="text-red-500 font-medium text-[0.8rem]">
+                              RS{" "}
+                              {Math.round(
+                                +product.price *
+                                  (1 - (product.discount || 0) / 100)
+                              )}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                   <div className="flex items-center justify-between px-4 py-3 mt-1 border-t shadow-sm hover:bg-gray-50 cursor-pointer transition">
                     <p className="text-gray-700 text-sm font-medium">{`Search for "${search}"`}</p>
@@ -220,12 +232,17 @@ export default function Navbar() {
                 />
               )}
 
-              <ShoppingBag
-                onClick={() => setOpenSidebar("cart")}
-                width={25}
-                height={25}
-                className="cursor-pointer"
-              />
+              <div className="relative">
+                <ShoppingBag
+                  onClick={() => setOpenSidebar("cart")}
+                  width={25}
+                  height={25}
+                  className="cursor-pointer"
+                />
+                <div className="bg-black h-4 w-4 absolute -top-1 flex items-center pt-[1px] justify-center text-sm font-semibold -right-1 rounded-full text-white">
+                  {items.reduce((count, item) => count + item.quantity, 0)}
+                </div>
+              </div>
             </div>
           </div>
         </div>
