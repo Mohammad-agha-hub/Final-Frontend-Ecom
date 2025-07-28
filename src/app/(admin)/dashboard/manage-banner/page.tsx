@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 interface Banner {
   id: string;
   title: string;
@@ -74,6 +75,7 @@ export default function ManageBanners() {
     setEditingId(null);
     setLoading(false);
     setOpen(false);
+    toast.success("Created banner successfully!")
     await fetchBanners();
   };
 
@@ -89,6 +91,7 @@ export default function ManageBanners() {
     await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos/${id}`, {
       method: "DELETE",
     });
+    toast.success("Banner deleted successfully!")
     fetchBanners();
   };
 

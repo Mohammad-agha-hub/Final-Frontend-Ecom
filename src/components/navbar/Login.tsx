@@ -9,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSession } from "next-auth/react";
 
 const Login = () => {
   const { showLoginModal, setShowLoginModal } = useAuthStore();
@@ -34,7 +35,7 @@ const Login = () => {
       });
     }
   }, [showLoginModal]);
-
+  const {status} = useSession()
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async () => {
@@ -108,6 +109,7 @@ const Login = () => {
         callbackUrl: `${window.location.origin}`,
       });
       setShowLoginModal(false);
+      toast.success("Logged in successfully!")
       router.refresh();
     } catch{
       toast.error("Google login failed");

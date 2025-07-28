@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { toast } from "react-toastify";
 
 interface Category {
   id: string;
@@ -110,7 +111,7 @@ export default function CreateProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.slug || imageFiles.length === 0) {
+    if (!formData.name || !formData.description || !formData.price ||  !formData.slug || imageFiles.length === 0) {
       setError("Please fill all required fields");
       return;
     }
@@ -154,12 +155,11 @@ export default function CreateProductForm({
       );
 
       const result = await res.json();
-      if (!res.ok)
-        throw new Error(result.message || "Failed to create product");
-
+      if (!res.ok) toast.error(result.message || "Failed to create product");
+      toast.success("Created Product Successfully!")
       router.push(`/dashboard/view-products`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }

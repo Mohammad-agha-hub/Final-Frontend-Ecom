@@ -8,6 +8,7 @@ import BrowserIcon from "../utilities/BrowserIcon";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCartStore } from "@/utils/CartStore";
+import { toast } from "react-toastify";
 
 
 countries.registerLocale(en);
@@ -145,7 +146,9 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         !formData.firstName ||
         !formData.lastName ||
         !formData.address ||
-        !formData.phone
+        !formData.phone ||
+        !formData.address ||
+        !formData.cityInput
       ) {
         throw new Error("Please fill in all required fields");
       }
@@ -225,12 +228,13 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         window.location.href = data.paymentUrl;
       } else {
         clearCart();
+        toast.success("Order placed successfully!")
         router.push(`/order-confirmation/${data.order.id}`);
       }
     } catch (error) {
       console.error("Order submission error", error);
       if (error instanceof Error) {
-        alert(error.message);
+        toast.error(error.message)
       } else {
         alert("Failed to place order. Please try again.");
       }

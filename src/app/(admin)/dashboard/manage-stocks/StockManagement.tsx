@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 interface Variant {
   id: string;
   key: string;
@@ -89,8 +90,9 @@ const StockManagement: React.FC<Props> = ({
       );
       fetchCombinations();
       setRestockInputs((prev) => ({ ...prev, [id]: 0 }));
+      toast.success("Product restocked!")
     } catch {
-      alert("Failed to restock");
+      toast.error("Failed to restock");
     }
   };
 
@@ -113,8 +115,9 @@ const StockManagement: React.FC<Props> = ({
       );
       fetchCombinations();
       setUpdateInputs((prev) => ({ ...prev, [id]: 0 }));
+      toast.success("Stock updated!")
     } catch {
-      alert("Failed to update stock");
+      toast.error("Failed to update stock");
     }
   };
 

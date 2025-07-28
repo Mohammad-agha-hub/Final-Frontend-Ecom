@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface Tag {
   id: string;
@@ -145,10 +146,11 @@ export default function EditProductClient({
         }
       );
 
-      if (!res.ok) throw new Error("Failed to save product");
+      if (!res.ok) toast.error("Failed to save product");
+      toast.success("Updated Product Successfully!")
       router.push("/dashboard/view-products");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setSaving(false);
     }
@@ -167,10 +169,11 @@ export default function EditProductClient({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (!res.ok) throw new Error("Failed to delete product");
+      if (!res.ok) toast.error("Failed to delete product");
+      toast.success("Deleted Product Successfully!")
       router.push("/dashboard/view-products");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setDeleting(false);
     }

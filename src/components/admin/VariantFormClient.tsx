@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "react-toastify";
 
 interface Product {
   id: string;
@@ -142,10 +143,11 @@ export default function EditProductClient({
         }
       );
 
-      if (!res.ok) throw new Error("Failed to save variant combinations");
+      if (!res.ok) toast.error("Failed to save variant combinations");
+      toast.success("Variant Updated Successfully!")
       router.push("/dashboard/view-products");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setSaving(false);
     }
@@ -164,10 +166,11 @@ export default function EditProductClient({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (!res.ok) throw new Error("Failed to delete product");
+      if (!res.ok) toast.error("Failed to delete product");
+      toast.success("Deleted Variant Successfully!")
       router.push("/dashboard/view-products");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setDeleting(false);
     }
