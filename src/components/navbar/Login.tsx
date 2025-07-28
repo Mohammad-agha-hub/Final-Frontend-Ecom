@@ -109,7 +109,6 @@ const Login = () => {
         callbackUrl: `${window.location.origin}`,
       });
       setShowLoginModal(false);
-      toast.success("Logged in successfully!")
       router.refresh();
     } catch{
       toast.error("Google login failed");
