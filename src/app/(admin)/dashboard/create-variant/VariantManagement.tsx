@@ -162,13 +162,25 @@ export default function VariantManagementClient({
             onChange={(e) => handleChange(e, setNewVariant)}
             disabled={loading}
           />
-          <Input
-            name="value"
-            placeholder="Value (e.g., Red)"
-            value={newVariant.value}
-            onChange={(e) => handleChange(e, setNewVariant)}
-            disabled={loading}
-          />
+          {newVariant.key.toLowerCase() === "color" ? (
+            <input
+              type="color"
+              name="value"
+              value={newVariant.value || "#000000"}
+              onChange={(e) => handleChange(e, setNewVariant)}
+              disabled={loading}
+              className="h-10 w-full rounded border"
+            />
+          ) : (
+            <Input
+              name="value"
+              placeholder="Value"
+              value={newVariant.value}
+              onChange={(e) => handleChange(e, setNewVariant)}
+              disabled={loading}
+            />
+          )}
+
           <Button
             type="submit"
             disabled={loading || !newVariant.key || !newVariant.value}
@@ -215,11 +227,21 @@ export default function VariantManagementClient({
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            name="value"
-                            value={editValue.value}
-                            onChange={(e) => handleChange(e, setEditValue)}
-                          />
+                          {editValue.key.toLowerCase() === "color" ? (
+                            <input
+                              type="color"
+                              name="value"
+                              value={editValue.value || "#000000"}
+                              onChange={(e) => handleChange(e, setEditValue)}
+                              className="h-10 w-full rounded border"
+                            />
+                          ) : (
+                            <Input
+                              name="value"
+                              value={editValue.value}
+                              onChange={(e) => handleChange(e, setEditValue)}
+                            />
+                          )}
                         </TableCell>
                         <TableCell className="text-center space-x-2">
                           <Button
@@ -245,7 +267,17 @@ export default function VariantManagementClient({
                         <TableCell className="font-medium">
                           {variant.key}
                         </TableCell>
-                        <TableCell>{variant.value}</TableCell>
+                        <TableCell>
+                          {variant.key.toLowerCase() === "color" ? (
+                            <div
+                              className="w-6 h-6 rounded-full border"
+                              style={{ backgroundColor: variant.value }}
+                            />
+                          ) : (
+                            variant.value
+                          )}
+                        </TableCell>
+
                         <TableCell className="text-center space-x-2">
                           <Button
                             size="icon"

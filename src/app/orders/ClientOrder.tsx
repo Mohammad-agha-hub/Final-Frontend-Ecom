@@ -112,13 +112,28 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                         <h3 className="text-md font-semibold text-gray-800">
                           {item.product.name}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
                           Size: <span className="font-medium">{item.size}</span>{" "}
-                          | Color:{" "}
-                          <span className="font-medium">{item.color}</span> |
-                          Qty:{" "}
+                          | Color:
+                          <span
+                            className="font-medium ml-1"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            <span
+                              className="inline-block w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            {item.color}{" "}
+                            {/* fallback if no name */}
+                          </span>
+                          | Qty:{" "}
                           <span className="font-medium">{item.quantity}</span>
                         </p>
+
                         <p className="text-sm text-gray-600">
                           Price: Rs {item.price.toLocaleString()}
                         </p>

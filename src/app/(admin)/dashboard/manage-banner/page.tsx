@@ -207,7 +207,7 @@ export default function ManageBanners() {
         {banners.map((banner) => (
           <Card key={banner.id} className="overflow-hidden">
             <Image
-              src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}`}
+              src={banner.imageUrl}
               alt={banner.title}
               width={400}
               height={400}

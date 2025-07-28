@@ -26,7 +26,11 @@ interface Variant {
   key: string;
   value: string;
 }
-
+interface ProductImage {
+  id: number;
+  url: string;
+  alt?: string;
+}
 interface CombinationVariant {
   variant: Variant;
 }
@@ -47,6 +51,7 @@ interface Product {
   price: number;
   image: string;
   stock: number;
+  images:ProductImage[];
   discount?: number;
   createdAt: string;
   category?: Category | null;
@@ -137,7 +142,7 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
               <div className="w-full h-100 bg-gray-100 overflow-hidden">
                 {product.image ? (
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`}
+                    src={product.image}
                     alt={product.name}
                     width={290}
                     height={240}

@@ -206,7 +206,7 @@ export default function EditProductClient({
                     src={
                       img instanceof File
                         ? URL.createObjectURL(img)
-                        : `${process.env.NEXT_PUBLIC_BACKEND_URL}${img.url}`
+                        : img.url
                     }
                     alt="Product Image"
                     width={160}

@@ -1,16 +1,10 @@
 // components/hero/Filtered.tsx
 import ClientSlider from "./FilteredClient";
+import { Products } from "../utilities/types";
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  images: string[];
-  image:string
-}
-async function fetchProducts(): Promise<Product[]> {
+async function fetchProducts(): Promise<Products[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=1&limit=20`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
     {
       cache: "no-store",
     }

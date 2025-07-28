@@ -177,7 +177,7 @@ export default function Navbar({products}:{products:Product[]}) {
                     >
                       <Image
                         src={
-                          `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}` ||
+                          `${product.image}` ||
                           "/placeholder.png"
                         }
                         alt={product.name}

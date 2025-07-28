@@ -32,9 +32,7 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
       >
         <Image
           src={
-            left.imageUrl
-              ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${left.imageUrl}`
-              : `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020389883-cloth11a.png`
+           left.imageUrl
           }
           alt={left.title}
           fill
@@ -54,8 +52,6 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
         <Image
           src={
             right.imageUrl
-              ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${right.imageUrl}`
-              : `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020411392-banner.png`
           }
           alt={right.title}
           fill

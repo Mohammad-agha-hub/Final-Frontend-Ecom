@@ -21,7 +21,7 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
   const removeFromWishlist = useWishlistStore(
     (state) => state.removeFromWishlist
   );
-
+  console.log(product)
   // Reset selections when product changes
   useEffect(() => {
     setSelectedColor("");

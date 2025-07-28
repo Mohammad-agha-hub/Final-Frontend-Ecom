@@ -13,9 +13,10 @@ interface Product {
   id: string;
   name: string;
   slug: string;
-  images: string[];
-  image:string
+  images: { url: string; id: number }[]; // ✅ update this
+  image: string;
 }
+
 
 const LIMIT = 20;
 
@@ -94,7 +95,7 @@ export default function ClientSlider({
     const offset = direction === "left" ? -2 : 2;
     instance.moveToIdx(current + offset);
   };
-
+  console.log(products)
   return (
     <div className="w-full px-4 sm:px-6 md:px-8 relative">
       <div ref={sliderRef} className="keen-slider pt-4">
@@ -105,15 +106,17 @@ export default function ClientSlider({
             className="keen-slider__slide flex flex-col items-center cursor-pointer"
           >
             <div className="w-[200px] h-[260px] flex items-center justify-center overflow-hidden bg-white">
-              <Image
-                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`}
-                alt={product.name}
-                width={180}
-                height={200}
-                className="object-contain"
-                sizes="(max-width: 768px) 40vw, 180px"
-                loading="lazy"
-              />
+              
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  width={180}
+                  height={200}
+                  className="object-contain"
+                  sizes="(max-width: 768px) 40vw, 180px"
+                  loading="lazy"
+                />
+              
             </div>
             <span className="mt-2 text-sm text-center">{product.name}</span>
           </Link>

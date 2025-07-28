@@ -38,8 +38,8 @@ interface Product {
 interface VariantCombo {
   id?: string;
   variants: Record<string, string>;
-  price: number;
-  stock: number;
+  price: string;
+  stock: string;
 }
 
 interface Variant {
@@ -75,8 +75,8 @@ export default function EditProductClient({
     setCombos(
       product.variantCombinations.map((vc) => ({
         id: vc.id,
-        price: vc.price,
-        stock: vc.stock,
+        price: vc.price.toString(),
+        stock: vc.stock.toString(),
         variants: Object.fromEntries(
           vc.variants.map((v) => [v.variant.key, v.variant.value])
         ),
@@ -90,7 +90,10 @@ export default function EditProductClient({
     const defaultVariants = Object.fromEntries(
       Object.keys(variantOptions).map((key) => [key, ""])
     );
-    setCombos([...combos, { variants: defaultVariants, price: 0, stock: 0 }]);
+    setCombos([
+      ...combos,
+      { variants: defaultVariants, price: "0", stock: "0" },
+    ]);
   };
 
   const removeCombo = (idx: number) => {
@@ -99,8 +102,8 @@ export default function EditProductClient({
 
   const updateCombo = (
     idx: number,
-    field: keyof VariantCombo,
-    value: VariantCombo[typeof field]
+    field: keyof Omit<VariantCombo, "variants">,
+    value: string
   ) => {
     const updated = [...combos];
     updated[idx] = { ...updated[idx], [field]: value };
@@ -120,7 +123,12 @@ export default function EditProductClient({
         .filter((combo) =>
           Object.values(combo.variants).every((v) => v.trim() !== "")
         )
-        .map(({ ...rest }) => rest);
+        .map(({ id, variants, price, stock }) => ({
+          id,
+          variants,
+          price: Number(price),
+          stock: Number(stock),
+        }));
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/update-combination/${form.id}`,
@@ -202,23 +210,33 @@ export default function EditProductClient({
                 .map((key) => (
                   <div key={key}>
                     <Label className="pb-2">{key}</Label>
-                    <Select
-                      value={combo.variants[key]}
-                      onValueChange={(value) =>
-                        updateComboVariant(idx, key, value)
-                      }
-                    >
-                      <SelectTrigger className="px-7">
-                        <SelectValue placeholder={`Select ${key}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {variantOptions[key]?.map((v) => (
-                          <SelectItem key={v.id} value={v.value}>
-                            {v.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {key.toLowerCase() === "color" ? (
+                      <Input
+                        type="color"
+                        value={combo.variants[key]}
+                        onChange={(e) =>
+                          updateComboVariant(idx, key, e.target.value)
+                        }
+                      />
+                    ) : (
+                      <Select
+                        value={combo.variants[key]}
+                        onValueChange={(value) =>
+                          updateComboVariant(idx, key, value)
+                        }
+                      >
+                        <SelectTrigger className="px-7">
+                          <SelectValue placeholder={`Select ${key}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {variantOptions[key]?.map((v) => (
+                            <SelectItem key={v.id} value={v.value}>
+                              {v.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 ))}
               <div>
@@ -226,19 +244,16 @@ export default function EditProductClient({
                 <Input
                   type="number"
                   value={combo.price}
-                  onChange={(e) =>
-                    updateCombo(idx, "price", Number(e.target.value))
-                  }
+                  onChange={(e) => updateCombo(idx, "price", e.target.value)}
                 />
               </div>
               <div>
                 <Label className="pb-2">Stock</Label>
                 <Input
                   type="number"
+                  min="0"
                   value={combo.stock}
-                  onChange={(e) =>
-                    updateCombo(idx, "stock", Number(e.target.value))
-                  }
+                  onChange={(e) => updateCombo(idx, "stock", e.target.value)}
                 />
               </div>
             </CardContent>

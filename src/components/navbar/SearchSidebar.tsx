@@ -78,7 +78,7 @@ const SearchSidebar =({products}:{products:Product[]}) => {
               filteredItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-3 border-b pb-3">
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.image}`}
+                    src={item.images?.[0]?.url || "/placeholder.jpg"}
                     alt={item.name}
                     width={57}
                     height={42}

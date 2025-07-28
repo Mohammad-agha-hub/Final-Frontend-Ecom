@@ -38,8 +38,7 @@ const SecondBanner = ({ banners }: SecondBannerProps) => {
           <div className="relative w-full h-[22rem] md:h-[30rem] sm:aspect-[4/3]">
             <Image
               src={
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}${banner.imageUrl}` ||
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/banners/1753020355373-sandal.png`
+               banner.imageUrl
               }
               alt={banner.title}
               fill

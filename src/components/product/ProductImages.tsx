@@ -11,9 +11,9 @@ interface Props {
 
 const ProductImages = ({ images }: Props) => {
   const [index, setIndex] = useState(0);
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  
   const imageUrl = images[index]?.url;
-  const fullImageUrl = `${baseUrl}${imageUrl}`;
+  const fullImageUrl = imageUrl
   const thumbRef = useRef<HTMLDivElement>(null);
 
   if (!Array.isArray(images) || images.length === 0) {
@@ -89,7 +89,7 @@ const ProductImages = ({ images }: Props) => {
               }`}
             >
               <Image
-                src={`${baseUrl}${img.url}`}
+                src={img.url}
                 alt={`Thumbnail ${i + 1}`}
                 fill
                 className="object-contain"

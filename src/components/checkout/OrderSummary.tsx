@@ -81,7 +81,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
           {/* Image with Quantity Badge */}
           <div className="w-20 h-24 relative">
             <Image
-              src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.product.image}`}
+              src={item.product.image}
               alt={item.product.name}
               fill
               className="object-cover rounded"
@@ -96,12 +96,20 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
             <div className="flex pl-2 flex-col">
               <p className="text-sm font-medium">{item.product.name}</p>
               <p className="text-xs text-gray-500 mt-1">Size: {item.size}</p>
-              <p className="text-xs text-gray-500 mt-1">Color: {item.color}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                <span>Color:</span>
+                <span
+                  className="w-4 h-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: item.color ?? undefined }}
+                  title={item.color ?? ''}
+                />
+              </div>
+
               <span className="font-semibold text-sm pt-2 xl:hidden">
                 Rs{" "}
                 {Math.round(
                   item.product.price -
-                    item.product.price * ((item.product.discount??0) / 100)
+                    item.product.price * ((item.product.discount ?? 0) / 100)
                 ).toLocaleString()}
               </span>
             </div>
@@ -109,7 +117,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
               Rs{" "}
               {Math.round(
                 item.product.price -
-                  item.product.price * ((item.product.discount??0) / 100)
+                  item.product.price * ((item.product.discount ?? 0) / 100)
               ).toLocaleString()}
             </div>
           </div>
@@ -144,9 +152,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
         </div>
         <div className="flex justify-between">
           <span>Items</span>
-          <span>
-            {items.reduce((count, item) => count + item.quantity, 0)}
-          </span>
+          <span>{items.reduce((count, item) => count + item.quantity, 0)}</span>
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>

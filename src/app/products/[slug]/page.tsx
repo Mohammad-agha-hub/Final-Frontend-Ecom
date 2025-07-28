@@ -5,20 +5,23 @@ import { Product } from "@/components/utilities/types";
 
 
 export async function generateStaticParams() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
-    {
-      next: { revalidate: 60 },
-    }
-  );
-  if (!res.ok) {
-    console.error("Failed to fetch products for static params");
-    return [];
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+      {
+        next: { revalidate: 60 },
+      }
+    );
+    if (!res.ok) throw new Error("fetch failed! in generate static paramss");
+    const data = await res.json();
+
+    return data.products.map((product: { slug: string }) => ({
+      slug: product.slug,
+    }));
+  } catch (error) {
+      console.error("generatestaticparams error",error)
+      return []
   }
-  const data = await res.json();
-  return data.products.map((product: { slug: string }) => ({
-    slug: product.slug,
-  }));
 }
 
 // Fetch product(s) by slug
@@ -56,9 +59,12 @@ export default async function ProductPage({
     <div className="px-1 md:px-[10%] lg:px-10 xl:px-25 2xl:px-40 relative flex flex-col lg:flex-row gap-16">
       {/* Product Images */}
       <div className="w-full lg:w-1/2 lg:sticky top-18 h-max">
-        {singleProduct.images && (
-          <ProductImages images={singleProduct.images} />
-        )}
+        <ProductImages
+          images={singleProduct.images.map((img) => ({
+            id: String(img.id), // cast number → string
+            url: img.url,
+          }))}
+        />
       </div>
 
       {/* Product Info */}

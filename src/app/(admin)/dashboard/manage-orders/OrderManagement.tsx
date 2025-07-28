@@ -72,7 +72,7 @@ export default function OrderManagement({
   totalPages: number;
   token: string;
 }) {
-  const {data:session} = useSession()
+  const { data: session } = useSession();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filteredStatus, setFilteredStatus] = useState("all");
   const [page, setPage] = useState(1);
@@ -163,12 +163,13 @@ export default function OrderManagement({
     if (filteredStatus === "all") return orders;
     return orders.filter((order) => order.status === filteredStatus);
   }, [orders, filteredStatus]);
-  if(!session || session.user.isAdmin !== true){
+  if (!session || session.user.isAdmin !== true) {
     return (
       <div className="text-center text-destructive mt-10 text-lg font-semibold">
         Access denied.
       </div>
-    );}
+    );
+  }
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -423,12 +424,20 @@ export default function OrderManagement({
                                           </span>
                                           {item.size}
                                         </span>
-                                        <span>
-                                          <span className="font-semibold">
-                                            Color:{" "}
-                                          </span>
+
+                                        <span className="font-semibold">
+                                          Color:{" "}
+                                        </span>
+                                        <span className="inline-flex items-center gap-2">
+                                          <span
+                                            className="w-4 h-4 rounded-full border border-gray-300"
+                                            style={{
+                                              backgroundColor: item.color,
+                                            }}
+                                          />
                                           {item.color}
                                         </span>
+
                                         <span>
                                           <span className="font-semibold">
                                             Price:{" "}

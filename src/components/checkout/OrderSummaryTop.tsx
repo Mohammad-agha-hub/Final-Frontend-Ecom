@@ -104,7 +104,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                 >
                   <div className="w-20 h-24 relative">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.product.image}`}
+                      src={item.product.image}
                       alt={item.product.name}
                       fill
                       className="object-cover rounded"
@@ -119,9 +119,15 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                       <p className="text-xs text-gray-900 mt-1">
                         Size: {item.size}
                       </p>
-                      <p className="text-xs text-gray-900 mt-1">
-                        Color: {item.color}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <span>Color:</span>
+                        <span
+                          className="w-4 h-4 rounded-full border border-gray-300"
+                          style={{ backgroundColor: item.color ?? undefined }}
+                          title={item.color ?? ""}
+                        />
+                      </div>
+
                       <p className="text-sm sm:text-base text-left pt-2 font-semibold text-gray-600">
                         Rs{" "}
                         {Math.round(

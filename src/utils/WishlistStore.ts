@@ -1,14 +1,8 @@
+import { Product } from '@/components/utilities/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type WishlistItem = {
-  id: string;
-  name: string;
-  image: string[];
-  price: number;
-  slug: string;
-  discount:number;
-};
+export type WishlistItem = Product
 
 type WishlistState = {
   wishlist: WishlistItem[];

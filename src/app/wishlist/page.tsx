@@ -31,7 +31,7 @@ const WishlistPage = () => {
                 <CardHeader className="p-3">
                   <div className="relative w-full aspect-4/5 rounded-xl overflow-hidden">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.image}`}
+                      src={item.image}
                       alt={item.name}
                       fill
                       className="object-cover object-top"

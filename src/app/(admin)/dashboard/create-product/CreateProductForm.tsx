@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
@@ -43,7 +43,6 @@ interface ProductFormData {
   categoryId: string;
 }
 
-
 interface Props {
   categories: Category[];
   tags: Tag[];
@@ -53,14 +52,16 @@ interface Props {
 export default function CreateProductForm({
   categories,
   tags,
-  variants
+  variants,
 }: Props) {
   const router = useRouter();
-  const {data:session} = useSession()
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [selectedVariants, setSelectedVariants] = useState<
+    Record<string, string>
+  >({});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
@@ -73,6 +74,16 @@ export default function CreateProductForm({
     discount: "",
     categoryId: "",
   });
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    const slug = formData.name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    setFormData((prev) => ({ ...prev, slug }));
+  }, [formData.name]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -131,18 +142,22 @@ export default function CreateProductForm({
       selectedTags.forEach((id) => fd.append("tagIds", id));
       imageFiles.forEach((file) => fd.append("images", file));
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session?.user?.backendToken}`,
-        },
-        body: fd,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.user?.backendToken}`,
+          },
+          body: fd,
+        }
+      );
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Failed to create product");
+      if (!res.ok)
+        throw new Error(result.message || "Failed to create product");
 
-      router.push(`/dashboard/edit-product/${result.product.id}`);
+      router.push(`/dashboard/view-products`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -157,6 +172,7 @@ export default function CreateProductForm({
       groupedVariants[variant.key].push(variant.value);
     }
   });
+
   if (!session || session.user.isAdmin !== true) {
     return (
       <div className="text-center text-destructive mt-10 text-lg font-semibold">
@@ -164,7 +180,7 @@ export default function CreateProductForm({
       </div>
     );
   }
-    
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -176,18 +192,35 @@ export default function CreateProductForm({
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-4">
           <Label>Name</Label>
-          <Input name="name" value={formData.name} onChange={handleInputChange} disabled={loading} className="py-5" />
+          <Input
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            disabled={loading}
+            className="py-5"
+          />
 
-          <Label>Slug</Label>
-          <Input name="slug" value={formData.slug} onChange={handleInputChange} disabled={loading} className="py-5" />
+          {/* Slug is hidden but still included in the form */}
+          <input type="hidden" name="slug" value={formData.slug} />
 
           <Label>Description</Label>
-          <Textarea name="description" value={formData.description} onChange={handleInputChange} disabled={loading} />
+          <Textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            disabled={loading}
+          />
         </div>
 
         <div className="space-y-4">
           <Label>Price</Label>
-          <Input name="price" value={formData.price} onChange={handleInputChange} disabled={loading} className="py-5" />
+          <Input
+            name="price"
+            value={formData.price}
+            onChange={handleInputChange}
+            disabled={loading}
+            className="py-5"
+          />
 
           <Label>Discount (%)</Label>
           <Input
@@ -201,7 +234,9 @@ export default function CreateProductForm({
           <Label>Category</Label>
           <Select
             value={formData.categoryId}
-            onValueChange={(val) => setFormData((prev) => ({ ...prev, categoryId: val }))}
+            onValueChange={(val) =>
+              setFormData((prev) => ({ ...prev, categoryId: val }))
+            }
             disabled={loading}
           >
             <SelectTrigger>
@@ -222,32 +257,40 @@ export default function CreateProductForm({
         <div className="space-y-4">
           <Label>Tags</Label>
           <div className="flex flex-wrap gap-2">
-            {tags.filter((tag) => !tag.parent).map((tag) => (
-              <Button
-                key={tag.id}
-                type="button"
-                variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-                className="rounded-full text-sm"
-                onClick={() => handleTagToggle(tag.id)}
-              >
-                {tag.name}
-              </Button>
-            ))}
+            {tags
+              .filter((tag) => !tag.parent)
+              .map((tag) => (
+                <Button
+                  key={tag.id}
+                  type="button"
+                  variant={
+                    selectedTags.includes(tag.id) ? "default" : "outline"
+                  }
+                  className="rounded-full text-sm"
+                  onClick={() => handleTagToggle(tag.id)}
+                >
+                  {tag.name}
+                </Button>
+              ))}
           </div>
 
           <Label>Subtags</Label>
           <div className="flex flex-wrap gap-2">
-            {tags.filter((tag) => tag.parent).map((tag) => (
-              <Button
-                key={tag.id}
-                type="button"
-                variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-                className="rounded-full text-sm"
-                onClick={() => handleTagToggle(tag.id)}
-              >
-                {tag.name}
-              </Button>
-            ))}
+            {tags
+              .filter((tag) => tag.parent)
+              .map((tag) => (
+                <Button
+                  key={tag.id}
+                  type="button"
+                  variant={
+                    selectedTags.includes(tag.id) ? "default" : "outline"
+                  }
+                  className="rounded-full text-sm"
+                  onClick={() => handleTagToggle(tag.id)}
+                >
+                  {tag.name}
+                </Button>
+              ))}
           </div>
         </div>
 
@@ -268,7 +311,18 @@ export default function CreateProductForm({
                   <SelectContent>
                     {values.map((val) => (
                       <SelectItem key={val} value={val}>
-                        {val}
+                        {key.toLowerCase() === "color" &&
+                        /^#([0-9a-f]{3}){1,2}$/i.test(val) ? (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-5 h-5 rounded-full border"
+                              style={{ backgroundColor: val }}
+                            />
+                            <span>{val}</span>
+                          </div>
+                        ) : (
+                          val
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -291,12 +345,23 @@ export default function CreateProductForm({
         {imagePreviews.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
             {imagePreviews.map((src, i) => (
-              <div key={i} className="relative group border rounded overflow-hidden">
-                <Image src={src} alt={`Preview ${i}`} width={200} height={200} className="object-cover w-full h-102" />
+              <div
+                key={i}
+                className="relative group border rounded overflow-hidden"
+              >
+                <Image
+                  src={src}
+                  alt={`Preview ${i}`}
+                  width={200}
+                  height={200}
+                  className="object-cover w-full h-102"
+                />
                 <button
                   type="button"
                   onClick={() => {
-                    setImagePreviews((prev) => prev.filter((_, idx) => idx !== i));
+                    setImagePreviews((prev) =>
+                      prev.filter((_, idx) => idx !== i)
+                    );
                     setImageFiles((prev) => prev.filter((_, idx) => idx !== i));
                   }}
                   className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"

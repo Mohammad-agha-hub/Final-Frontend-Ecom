@@ -118,15 +118,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="relative aspect-[3/4] w-full">
-        {product.images && product.images.length>0 && (
- <Image
- src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.images[1].url}`}
- alt="Front"
- fill
- className="object-cover"
-/>
+        {product.images && product.images.length > 0 && (
+          <Image
+            src={product.images?.[1]?.url}
+            alt="Front"
+            fill
+            className="object-cover"
+          />
         )}
-       
+
         <motion.div
           className="absolute inset-0 z-10"
           style={{ pointerEvents: "none" }}
@@ -137,13 +137,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           }}
           transition={{ duration: 0.6 }}
         >
-          {product.images && product.images.length>0 && (
+          {product.images && product.images.length > 0 && (
             <Image
-            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${product.images[0].url}`}
-            alt="Back"
-            fill
-            className="object-cover"
-          />
+              src={product.images?.[0]?.url}
+              alt="Back"
+              fill
+              className="object-cover"
+            />
           )}
         </motion.div>
       </div>
@@ -167,22 +167,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {product.name}
         </h1>
         <div className="flex justify-center gap-2">
-          <span className="text-sm text-gray-700">
-            {product.price}
-          </span>
-          {/* <span className="text-sm text-gray-900">
+          <span className="text-sm text-gray-700">{product.price}</span>
+          <span className="text-sm text-gray-900">
             Rs{" "}
             {product.price -
               Math.round((product.price * product.discount) / 100)}
-          </span> */}
-          {/* {product.discount > 0 && (
+          </span>
+           {product.discount > 0 && (
             <>
               <span className="text-sm text-gray-600 line-through">
                 Rs {product.price}
               </span>
               <span className="text-sm text-red-400">{product.discount}%</span>
             </>
-          )} */}
+          )}
         </div>
       </div>
     </div>

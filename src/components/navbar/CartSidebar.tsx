@@ -177,7 +177,7 @@ export default function CartSidebar() {
                     <div className="flex gap-4">
                       <div className="relative w-20 h-27 flex-shrink-0">
                         <Image
-                          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${image}`}
+                          src={image}
                           alt={item.product.name}
                           fill
                           className="object-cover rounded-md"
@@ -196,11 +196,18 @@ export default function CartSidebar() {
                         {(color || size) && (
                           <div className="mt-1 space-y-1">
                             {color && (
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Color:</span>{" "}
-                                {color}
+                              <p className="text-sm text-gray-600 flex items-center gap-2">
+                                <span className="font-medium">Color:</span>
+                                {/^#[0-9A-F]{6}$/i.test(color) && (
+                                  <span
+                                    className="w-4 h-4 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: color }}
+                                    title={color}
+                                  />
+                                )}
                               </p>
                             )}
+
                             {size && (
                               <p className="text-sm text-gray-600">
                                 <span className="font-medium">Size:</span>{" "}

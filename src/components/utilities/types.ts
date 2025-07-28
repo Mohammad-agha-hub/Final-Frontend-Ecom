@@ -11,18 +11,22 @@ interface TagType {
     name: string;
   };
 }
-
+interface ProductImage {
+  id: number;
+  url: string;
+  alt?: string;
+}
 export interface Product {
   id: string;
   name: string;
   slug: string;
   description?: string;
   price: number;
-  image: string[];
+  image: string;
   stock: number;
   discount: number;
   createdAt: string;
-  images?: { url: string; id: string }[];
+  images:ProductImage[];
   color?: string;
   size: string;
   variantCombinations?: VariantCombination[];
@@ -33,6 +37,18 @@ export interface Product {
   
 }
 
+export interface ProductImages {
+  id: number;
+  url: string;
+}
+
+export interface Products {
+  id: string;
+  name: string;
+  slug: string;
+  images: ProductImage[];
+  image: string;
+}
 
 export interface Variant {
   variant: {
