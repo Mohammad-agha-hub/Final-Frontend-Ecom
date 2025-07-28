@@ -102,7 +102,7 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                     <div key={item.id} className="flex gap-4">
                       <div className="w-20 h-20 relative">
                         <Image
-                          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.product.image}`}
+                          src={item.product.image}
                           alt={item.product.name}
                           fill
                           loading="lazy"
@@ -128,7 +128,6 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                               className="inline-block w-4 h-4 rounded-full border border-gray-300"
                               style={{ backgroundColor: item.color }}
                             />
-                            {item.color} {/* fallback if no name */}
                           </span>
                           | Qty:{" "}
                           <span className="font-medium">{item.quantity}</span>

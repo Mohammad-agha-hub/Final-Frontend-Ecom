@@ -435,7 +435,6 @@ export default function OrderManagement({
                                               backgroundColor: item.color,
                                             }}
                                           />
-                                          {item.color}
                                         </span>
 
                                         <span>

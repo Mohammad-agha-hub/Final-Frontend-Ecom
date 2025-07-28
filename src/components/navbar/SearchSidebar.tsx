@@ -63,11 +63,14 @@ const SearchSidebar =({products}:{products:Product[]}) => {
             className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                window.location.href = `/all-products?search=${encodeURIComponent(
+                  search
+                )}`;
+              }
+            }}
           />
-
-          <h1 className="w-full font-semibold pl-3 py-2 border-y border-gray-200 text-[#222] shadow-[0_3px_10px_#81818133]">
-            Search Results
-          </h1>
 
           {/* Results */}
           <div
@@ -98,7 +101,15 @@ const SearchSidebar =({products}:{products:Product[]}) => {
             )}
           </div>
 
-          <h1 className="font-semibold text-[#222] px-5 py-2 border-b border-gray-200 shadow-[0_3px_10px_#81818133]">
+          <h1
+            onClick={() => {
+                window.location.href = `/all-products?search=${encodeURIComponent(
+                  search
+                )}`;
+              }
+            }
+            className="font-semibold text-[#222] px-5 py-2 border-b border-gray-200 shadow-[0_3px_10px_#81818133]"
+          >
             {search ? `Search For "${search}"` : "Start typing to search..."}
           </h1>
         </div>

@@ -160,8 +160,14 @@ export default function Navbar({products}:{products:Product[]}) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() => setIsSearchOpen(true)}
+                onKeyDown={(e)=>{
+                  if(e.key === 'Enter'){
+                    window.location.href = `/all-products?search=${encodeURIComponent(search)}`
+                  }
+                }}
               />
               <Search
+                onClick={()=> window.location.href = `/all-products?search=${encodeURIComponent(search)}`}
                 width={25}
                 height={25}
                 className="absolute top-1.5 cursor-pointer right-3 text-gray-300"

@@ -2,8 +2,8 @@
 
 import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
-import FilteredCollection from './FilteredCollection';
-const CollectionSidebar = dynamic(() => import("./CollectionSidebar"), {
+import FilteredCollection from './FilteredCollectionAll';
+const CollectionSidebarAll = dynamic(() => import("./CollectionSidebarAll"), {
   ssr: false,
 });
 import { useFilterStore } from '@/utils/FilterStore';
@@ -11,33 +11,28 @@ import dynamic from "next/dynamic";
 import { Product } from '../utilities/types'; 
 
 type ColorVariant = {
-  value: string;
-};
+    value:string
+}
 
-const CollectionFiltered = ({ items, colors }: { items: Product[];colors:ColorVariant[] }) => {
+const CollectionFilterAll = ({items,search,colors}:{items:Product[];search:string;colors:ColorVariant[]}) => {
   const [sortOpen, setSortOpen] = useState(false);
   const [columns, setColumns] = useState(2);
-  const [openSidebar, setOpenSidebar] = useState(false);
-  const sortOptions = [
-    "Featured",
-    "Price: Low to High",
-    "Price: High to Low",
-    "Newest",
-  ];
-  const currentSort = useFilterStore((state) => state.sortBy);
-  const setSortBy = useFilterStore((state) => state.setSortBy);
+  const [openSidebar,setOpenSidebar] = useState(false)
+  const sortOptions = ['Featured','Price: Low to High',"Price: High to Low","Newest"]
+  const currentSort = useFilterStore((state)=>state.sortBy)
+  const setSortBy = useFilterStore((state)=>state.setSortBy)
   const gridOptions = [
-    { count: 1, classes: "block sm:block md:hidden" }, // sm and below
-    { count: 2, classes: "block" }, // all screens
-    { count: 3, classes: "sm:block md:block lg:block xl:block hidden" }, // md and up
-    { count: 4, classes: "md:block lg:block xl:block hidden" }, // lg and up
-    { count: 5, classes: "lg:block xl:block hidden" }, // lg and up
-    { count: 6, classes: "xl:block hidden" }, // xl only
+    { count: 1, classes: 'block sm:block md:hidden' },                  // sm and below
+    { count: 2, classes: 'block' },                                     // all screens
+    { count: 3, classes: 'sm:block md:block lg:block xl:block hidden' }, // md and up
+    { count: 4, classes: 'md:block lg:block xl:block hidden' },         // lg and up
+    { count: 5, classes: 'lg:block xl:block hidden' },                  // lg and up
+    { count: 6, classes: 'xl:block hidden' },                           // xl only
   ];
 
   return (
     <>
-      <CollectionSidebar open={openSidebar} setOpen={setOpenSidebar} colors={colors.map((c)=>c.value)} />
+      <CollectionSidebarAll open={openSidebar} setOpen={setOpenSidebar} colors={colors.map((c)=>c.value)} />
       <div className="flex justify-between items-center border-b py-4 px-2 md:px-6">
         {/* LEFT: Filter */}
         <div
@@ -97,13 +92,11 @@ const CollectionFiltered = ({ items, colors }: { items: Product[];colors:ColorVa
               {sortOptions.map((item) => (
                 <div
                   key={item}
-                  onClick={() => {
-                    setSortBy(item);
-                    setSortOpen(false);
+                  onClick={()=>{
+                    setSortBy(item)
+                    setSortOpen(false)
                   }}
-                  className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm ${
-                    currentSort === item ? "bg-gray-100 font-medium" : ""
-                  }`}
+                  className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm ${currentSort===item?'bg-gray-100 font-medium':""}`}
                 >
                   {item}
                 </div>
@@ -113,9 +106,9 @@ const CollectionFiltered = ({ items, colors }: { items: Product[];colors:ColorVa
         </div>
       </div>
 
-      <FilteredCollection columns={columns} items={items} />
+      <FilteredCollection columns={columns} items={items} search={search} />
     </>
   );
 };
 
-export default CollectionFiltered;
+export default CollectionFilterAll;

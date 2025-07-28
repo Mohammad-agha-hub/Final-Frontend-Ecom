@@ -173,7 +173,6 @@ export default function DataTable({ orders, users }: Props) {
                                     className="w-3 h-3 rounded-full border border-gray-300"
                                     style={{ backgroundColor: item.color }}
                                   />
-                                  {item.color}
                                 </span>
                                 {` (x${item.quantity})`}
                               </div>

@@ -16,7 +16,9 @@ interface TagType {
     name: string;
   };
 }
-
+type ColorVariant = {
+  value: string; // e.g., "#0787a6"
+};
 interface ProductTag {
   id: string;
   tag: TagType;
@@ -54,6 +56,7 @@ export async function generateStaticParams(): Promise<Params[]> {
     return []; // fallback to no params
   }
 }
+
 
 
 export default async function Collection({
@@ -95,12 +98,27 @@ export default async function Collection({
     return matchesCategory && matchesParentTag && matchesSubTag;
   });
   
+  const colorSet = new Set<string>();
+  for (const product of filteredProducts) {
+    for (const combination of product.variantCombinations || []) {
+      for (const variantWrapper of combination.variants || []) {
+        const variant = variantWrapper.variant;
+        if (variant?.key?.toLowerCase() === "color") {
+          colorSet.add(variant.value);
+        }
+      }
+    }
+  }
+  const uniqueColors: ColorVariant[] = Array.from(colorSet).map((value) => ({
+    value,
+  }));
+  
 
   return (
     <div className=" flex flex-col min-h-screen">
       <CategoryMenu />
       <div className="flex-1 overflow-y-auto">
-      <CollectionFilter items={filteredProducts} />
+      <CollectionFilter colors={uniqueColors}  items={filteredProducts} />
       </div>
     </div>
   );

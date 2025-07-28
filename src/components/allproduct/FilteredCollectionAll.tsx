@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ShoppingCart } from "lucide-react";
+import {  ShoppingCart } from "lucide-react";
 import { useFilterStore } from "@/utils/FilterStore";
 import { Product } from "../utilities/types";
 import { useRouter } from "next/navigation";
@@ -11,17 +11,17 @@ import { useRouter } from "next/navigation";
 type FilteredCollectionProps = {
   columns: number;
   items: Product[];
+  search:string
 };
 
-const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
+const FilteredCollection = ({ columns, items,search }: FilteredCollectionProps) => {
  
   const filters = useFilterStore((state) => state.filters);
   const sortBy = useFilterStore((state) => state.sortBy);
   const router = useRouter();
 
   let products: Product[] = items.filter((item) => {
-    const effectivePrice =
-      item.price - Math.round((item.price * item.discount) / 100);
+    const effectivePrice = item.price - Math.round((item.price*item.discount)/100)
     const matchesPrice =
       !filters.price.length ||
       filters.price.some((range: string) => {
@@ -56,14 +56,14 @@ const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
   });
 
   products = [...products].sort((a, b) => {
-    const priceA = a.price - Math.round((a.price * a.discount) / 100);
-    const priceB = b.price - Math.round((b.price * b.discount) / 100);
+    const priceA = a.price - Math.round((a.price * a.discount)/100);
+    const priceB = b.price - Math.round((b.price * b.discount)/100);
 
     switch (sortBy) {
       case "Price: Low to High":
         return priceA - priceB;
       case "Price: High to Low":
-        return priceB - priceA;
+        return priceB - +priceA;
       case "Newest":
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -89,9 +89,16 @@ const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
 
   return (
     <div className="p-4 max-w-screen overflow-x-hidden pb-10">
-      <span className="text-sm text-gray-600 mb-4 block">
-        Products Available: {products.length}
-      </span>
+      <div className="flex justify-between items-center">
+        <div className="flex justify-between px-2 w-full">
+          <span className="text-sm text-gray-600 mb-4 block">
+            Products Available: {products.length}
+          </span>
+          <span className="text-sm text-gray-600 mb-4 block">
+            Search Result for &quot;{search}&quot;{" "}
+          </span>
+        </div>
+      </div>
       <div className="grid gap-6 w-full product-grid transition-all duration-300 ease-in-out">
         <div className={`grid ${gridColsClass[columns]} gap-6`}>
           {products.map((item) => (
