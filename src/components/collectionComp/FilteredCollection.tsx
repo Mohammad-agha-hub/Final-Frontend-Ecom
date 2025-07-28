@@ -83,7 +83,7 @@ const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
   };
 
   return (
-    <div className="p-4 max-w-screen overflow-x-hidden">
+    <div className="p-4 max-w-screen overflow-x-hidden pb-10">
       <span className="text-sm text-gray-600 mb-4 block">
         Products Available: {products.length}
       </span>
@@ -169,7 +169,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {product.name}
         </h1>
         <div className="flex justify-center gap-2">
-          <span className="text-sm text-gray-700">{product.price}</span>
           <span className="text-sm text-gray-900">
             Rs{" "}
             {product.price -

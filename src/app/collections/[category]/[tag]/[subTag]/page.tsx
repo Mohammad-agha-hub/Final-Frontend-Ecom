@@ -97,9 +97,11 @@ export default async function Collection({
   
 
   return (
-    <div className="h-screen">
+    <div className=" flex flex-col min-h-screen">
       <CategoryMenu />
+      <div className="flex-1 overflow-y-auto">
       <CollectionFilter items={filteredProducts} />
+      </div>
     </div>
   );
 }
