@@ -211,6 +211,7 @@ export default function ManageBanners() {
               alt={banner.title}
               width={400}
               height={400}
+              loading="lazy"
               className="w-full h-100 object-top object-cover"
             />
             <div className="p-4 space-y-1">

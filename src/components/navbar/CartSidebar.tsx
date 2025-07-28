@@ -180,6 +180,7 @@ export default function CartSidebar() {
                           src={image}
                           alt={item.product.name}
                           fill
+                          loading="lazy"
                           className="object-cover rounded-md"
                           sizes="80px"
                         />

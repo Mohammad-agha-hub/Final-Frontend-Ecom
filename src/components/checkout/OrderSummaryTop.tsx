@@ -107,6 +107,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                       src={item.product.image}
                       alt={item.product.name}
                       fill
+                      loading="lazy"
                       className="object-cover rounded"
                     />
                     <div className="absolute -top-2 -right-2 bg-[#4c5c66] text-white text-xs w-6 h-6 flex items-center justify-center rounded-full">

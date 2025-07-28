@@ -123,6 +123,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             src={product.images?.[1]?.url}
             alt="Front"
             fill
+            loading="lazy"
             className="object-cover"
           />
         )}
@@ -142,6 +143,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               src={product.images?.[0]?.url}
               alt="Back"
               fill
+              loading="lazy"
               className="object-cover"
             />
           )}
@@ -173,7 +175,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.price -
               Math.round((product.price * product.discount) / 100)}
           </span>
-           {product.discount > 0 && (
+          {product.discount > 0 && (
             <>
               <span className="text-sm text-gray-600 line-through">
                 Rs {product.price}

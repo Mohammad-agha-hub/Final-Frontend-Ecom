@@ -37,13 +37,12 @@ const SecondBanner = ({ banners }: SecondBannerProps) => {
           {/* Image */}
           <div className="relative w-full h-[22rem] md:h-[30rem] sm:aspect-[4/3]">
             <Image
-              src={
-               banner.imageUrl
-              }
+              src={banner.imageUrl}
               alt={banner.title}
               fill
               sizes="(max-width:640px)100vw,(max-width:1024px)50vw,33vw"
               className="object-cover"
+              loading="lazy"
             />
           </div>
 

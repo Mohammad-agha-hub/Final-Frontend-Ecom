@@ -176,12 +176,10 @@ export default function Navbar({products}:{products:Product[]}) {
                       className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100/60 cursor-pointer transition-colors"
                     >
                       <Image
-                        src={
-                          `${product.image}` ||
-                          "/placeholder.png"
-                        }
+                        src={`${product.image}` || "/placeholder.png"}
                         alt={product.name}
                         width={75}
+                        loading="lazy"
                         height={68}
                         className="w-15 h-22 object-contain z-99 rounded-sm shadow-sm"
                       />
@@ -190,7 +188,11 @@ export default function Navbar({products}:{products:Product[]}) {
                           {product.name}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className={`text-gray-500 font-medium text-[0.8rem] ${product.discount>0?"line-through":""}`}>
+                          <span
+                            className={`text-gray-500 font-medium text-[0.8rem] ${
+                              product.discount > 0 ? "line-through" : ""
+                            }`}
+                          >
                             RS {product.price}
                           </span>
                           {product.discount > 0 && (

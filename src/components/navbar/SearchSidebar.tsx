@@ -81,6 +81,7 @@ const SearchSidebar =({products}:{products:Product[]}) => {
                     src={item.images?.[0]?.url || "/placeholder.jpg"}
                     alt={item.name}
                     width={57}
+                    loading="lazy"
                     height={42}
                     className="object-cover rounded-md"
                   />

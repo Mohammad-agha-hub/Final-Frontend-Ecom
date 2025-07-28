@@ -105,6 +105,7 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                           src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.product.image}`}
                           alt={item.product.name}
                           fill
+                          loading="lazy"
                           className="rounded object-contain"
                         />
                       </div>
@@ -127,8 +128,7 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                               className="inline-block w-4 h-4 rounded-full border border-gray-300"
                               style={{ backgroundColor: item.color }}
                             />
-                            {item.color}{" "}
-                            {/* fallback if no name */}
+                            {item.color} {/* fallback if no name */}
                           </span>
                           | Qty:{" "}
                           <span className="font-medium">{item.quantity}</span>

@@ -34,6 +34,7 @@ const FirstBanner = ({ banner }: FirstBannerProps) => {
           className="object-cover"
           priority
           sizes="100vw"
+          loading="lazy"
         />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4 bg-black/40">

@@ -84,6 +84,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
               src={item.product.image}
               alt={item.product.name}
               fill
+              loading="lazy"
               className="object-cover rounded"
             />
             <div className="absolute -top-2 -right-2 bg-[#4c5c66] text-white text-xs w-6 h-6 flex items-center justify-center rounded-full">
@@ -101,7 +102,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                 <span
                   className="w-4 h-4 rounded-full border border-gray-300"
                   style={{ backgroundColor: item.color ?? undefined }}
-                  title={item.color ?? ''}
+                  title={item.color ?? ""}
                 />
               </div>
 

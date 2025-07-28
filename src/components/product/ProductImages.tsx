@@ -63,6 +63,7 @@ const ProductImages = ({ images }: Props) => {
             fill
             sizes="(max-width: 768px) 90vw, 800px"
             priority={index === 0}
+            loading="lazy"
             className="object-contain rounded-md"
           />
         </motion.div>
@@ -77,10 +78,7 @@ const ProductImages = ({ images }: Props) => {
 
       {/* Thumbnails for lg+ only */}
       <div className="hidden lg:flex justify-center mt-4 lg:ml-[5%] mb-5">
-        <div
-          className="flex overflow-x-hidden gap-4"
-          ref={thumbRef}
-        >
+        <div className="flex overflow-x-hidden gap-4" ref={thumbRef}>
           {images.map((img, i) => (
             <div
               key={img.id}
@@ -93,6 +91,7 @@ const ProductImages = ({ images }: Props) => {
                 alt={`Thumbnail ${i + 1}`}
                 fill
                 className="object-contain"
+                loading="lazy"
               />
             </div>
           ))}

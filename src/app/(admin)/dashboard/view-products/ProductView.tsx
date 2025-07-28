@@ -145,6 +145,7 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
                     src={product.image}
                     alt={product.name}
                     width={290}
+                    loading="lazy"
                     height={240}
                     className="w-full h-full object-cover"
                   />

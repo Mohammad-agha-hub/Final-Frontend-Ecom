@@ -35,6 +35,7 @@ const WishlistPage = () => {
                       alt={item.name}
                       fill
                       className="object-cover object-top"
+                      loading="lazy"
                     />
                   </div>
                 </CardHeader>
@@ -43,12 +44,13 @@ const WishlistPage = () => {
                     {item.name}
                   </CardTitle>
                   <div className="flex items-center gap-2 justify-center">
-                  {item.discount>0 && (
-                      <p
-                      className={`text-gray-900 font-bold text-lg}`}
-                    >
-                      Rs {Math.round(item.price - (item.price*item.discount)/100)}
-                    </p>
+                    {item.discount > 0 && (
+                      <p className={`text-gray-900 font-bold text-lg}`}>
+                        Rs{" "}
+                        {Math.round(
+                          item.price - (item.price * item.discount) / 100
+                        )}
+                      </p>
                     )}
 
                     <p
@@ -58,13 +60,21 @@ const WishlistPage = () => {
                     >
                       Rs {item.price}
                     </p>
-                    
                   </div>
                   <div className="flex justify-center gap-2 mt-4">
-                    <Button className="cursor-pointer" onClick={()=>router.push(`/products/${item.slug}`)} variant="default" size="sm">
+                    <Button
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/products/${item.slug}`)}
+                      variant="default"
+                      size="sm"
+                    >
                       View Product
                     </Button>
-                    <Button className="cursor-pointer" variant="outline" size="sm">
+                    <Button
+                      className="cursor-pointer"
+                      variant="outline"
+                      size="sm"
+                    >
                       Remove
                     </Button>
                   </div>

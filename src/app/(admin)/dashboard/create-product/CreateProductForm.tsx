@@ -354,6 +354,7 @@ export default function CreateProductForm({
                   alt={`Preview ${i}`}
                   width={200}
                   height={200}
+                  loading="lazy"
                   className="object-cover w-full h-102"
                 />
                 <button

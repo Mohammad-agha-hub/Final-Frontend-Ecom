@@ -31,11 +31,10 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
         className="relative w-[50%] md:w-[25%] aspect-[3/3] md:aspect-[7/3] cursor-pointer"
       >
         <Image
-          src={
-           left.imageUrl
-          }
+          src={left.imageUrl}
           alt={left.title}
           fill
+          loading="lazy"
           sizes="(max-width:768) 50vw,25vw"
           className="object-cover object-top"
         />
@@ -50,11 +49,10 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
         className="relative w-[50%] md:w-[75%] aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={
-            right.imageUrl
-          }
+          src={right.imageUrl}
           alt={right.title}
           fill
+          loading="lazy"
           sizes="(max-width:768px) 50vw,75vw"
           className="object-cover"
         />

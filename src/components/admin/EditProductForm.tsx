@@ -204,13 +204,12 @@ export default function EditProductClient({
                   <Image
                     key={idx}
                     src={
-                      img instanceof File
-                        ? URL.createObjectURL(img)
-                        : img.url
+                      img instanceof File ? URL.createObjectURL(img) : img.url
                     }
                     alt="Product Image"
                     width={160}
                     height={160}
+                    loading="lazy"
                     className="rounded object-cover border"
                   />
                 ))}
