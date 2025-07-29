@@ -16,6 +16,15 @@ countries.registerLocale(en);
 interface CheckoutDetailProps {
   couponCode: string;
   discountAmount: number;
+  settings: {
+    id: string;
+    currency: string;
+    shippingRate: number;
+    dhlCharge: number;
+    updatedAt: string;
+  };
+  isInternational:boolean;
+  setIsInternational:(value:boolean)=>void
 }
 
 const pakistaniCities = [
@@ -89,18 +98,20 @@ const Dropdown = ({
 const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
   couponCode,
   discountAmount,
+  settings,
+  isInternational,
+  setIsInternational,
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-
+  const { shippingRate, dhlCharge, currency } = settings;
   const [countriesList, setCountriesList] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("Pakistan");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [useDifferentBilling, setUseDifferentBilling] = useState(false);
   const { items, clearCart } = useCartStore();
-
   // Form state
   const [formData, setFormData] = useState({
     firstName: "",
@@ -125,8 +136,10 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
     const countryNames = countries.getNames("en", { select: "official" });
     setCountriesList(Object.values(countryNames));
   }, []);
+  useEffect(()=>{
+    setIsInternational(selectedCountry !== "Pakistan");
+  },[selectedCountry,setSelectedCountry])
 
-  const isInternational = selectedCountry !== "Pakistan";
   const hasFilledFields =
     formData.address &&
     (isInternational ? formData.cityInput : selectedCity) &&
@@ -168,7 +181,7 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         })),
         paymentMethod: selectedPayment,
         couponCode: couponCode || undefined,
-        shippingAmount:isInternational?14000:150,
+        shippingAmount: isInternational ? dhlCharge : shippingRate,
         shippingAddress: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -226,17 +239,16 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         window.location.href = data.paymentUrl;
       } else {
         clearCart();
-        toast.success("Order placed successfully!")
+        toast.success("Order placed successfully!");
         router.push(`/order-confirmation/${data.order.id}`);
       }
     } catch (error) {
       console.error("Order submission error", error);
       if (error instanceof Error) {
-        toast.error(error.message)
+        toast.error(error.message);
       } else {
         alert("Failed to place order. Please try again.");
       }
-      
     } finally {
       setIsLoading(false);
     }
@@ -395,9 +407,9 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
           <span className="text-sm font-medium">
             {isInternational
               ? hasFilledFields
-                ? "Rs 14,000.00"
+                ? `${currency}${dhlCharge}`
                 : ""
-              : "Rs 150.00"}
+              : `${currency}${shippingRate}`}
           </span>
         </div>
       </div>

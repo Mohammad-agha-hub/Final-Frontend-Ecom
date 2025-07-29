@@ -198,6 +198,7 @@ export default function CreateProductForm({
             onChange={handleInputChange}
             disabled={loading}
             className="py-5"
+            required
           />
 
           {/* Slug is hidden but still included in the form */}
@@ -209,6 +210,7 @@ export default function CreateProductForm({
             value={formData.description}
             onChange={handleInputChange}
             disabled={loading}
+            required
           />
         </div>
 
@@ -220,6 +222,7 @@ export default function CreateProductForm({
             onChange={handleInputChange}
             disabled={loading}
             className="py-5"
+            required
           />
 
           <Label>Discount (%)</Label>
@@ -229,6 +232,7 @@ export default function CreateProductForm({
             onChange={handleInputChange}
             disabled={loading}
             className="py-5"
+            
           />
 
           <Label>Category</Label>

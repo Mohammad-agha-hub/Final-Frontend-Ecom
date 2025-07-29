@@ -5,15 +5,23 @@ import Image from 'next/image';
 import { useCartStore } from '@/utils/CartStore';
 
   
-interface OrderSummaryProps{
-    onCouponApplied?:(code:string,amount:number)=>void
-  }
-const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
+interface OrderSummaryProps {
+  onCouponApplied?: (code: string, amount: number) => void;
+  settings: {
+    id: string;
+    currency: string;
+    shippingRate: number;
+    dhlCharge: number;
+    updatedAt: string;
+  };
+  isInternational:boolean
+}
+const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,settings,isInternational}) => {
   
   const [couponCode,setCouponCode] = useState('')
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
-
+  const {shippingRate,dhlCharge,currency} = settings
   const {items} = useCartStore() 
 
   const subtotal = items.reduce((sum, item) => {
@@ -22,9 +30,8 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
       item.product.price - item.product.price * (discount / 100);
     return sum + Math.round(discountedPrice) * item.quantity;
   }, 0);
-
-  const shipping = 150;
-  const total = Math.max(0, subtotal + shipping - discountAmount);
+  const shippingCharges = isInternational?dhlCharge:shippingRate
+  const total = Math.max(0, subtotal + shippingCharges - discountAmount);
   
   const applyCoupon = async()=>{
     if(!couponCode){
@@ -107,7 +114,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
               </div>
 
               <span className="font-semibold text-sm pt-2 xl:hidden">
-                Rs{" "}
+                {`${currency}`}{" "}
                 {Math.round(
                   item.product.price -
                     item.product.price * ((item.product.discount ?? 0) / 100)
@@ -115,7 +122,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
               </span>
             </div>
             <div className="text-right hidden xl:block font-semibold">
-              Rs{" "}
+              {`${currency}`}{" "}
               {Math.round(
                 item.product.price -
                   item.product.price * ((item.product.discount ?? 0) / 100)
@@ -149,7 +156,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
       <div className="text-sm text-gray-800 space-y-3">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span className="font-medium">Rs {subtotal}</span>
+          <span className="font-medium">{`${currency} ${subtotal}`}</span>
         </div>
         <div className="flex justify-between">
           <span>Items</span>
@@ -157,17 +164,17 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>Rs {shipping}</span>
+          <span>{`${currency} ${shippingCharges}`}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount</span>
-            <span>Rs {discountAmount}</span>
+            <span>{`${currency} ${discountAmount}`}</span>
           </div>
         )}
         <div className="flex justify-between text-lg font-semibold border-t pt-3">
           <span>Total</span>
-          <span>Rs {total}</span>
+          <span>{`${currency} ${total}`}</span>
         </div>
       </div>
     </div>

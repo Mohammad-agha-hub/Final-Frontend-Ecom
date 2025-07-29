@@ -6,17 +6,26 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCartStore } from "@/utils/CartStore";
 
-interface OrderSummaryProps{
-  onCouponApplied?:(code:string,amount:number)=>void
+interface OrderSummaryProps {
+  onCouponApplied?: (code: string, amount: number) => void;
+  settings: {
+    id: string;
+    currency: string;
+    shippingRate: number;
+    dhlCharge: number;
+    updatedAt: string;
+  };
+  isInternational:boolean
 }
 
-const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
+const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied,settings,isInternational}) => {
   const [couponCode,setCouponCode] = useState('')
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
   const {items} = useCartStore()
   const [openOrder, setOpenOrder] = useState(false);
-  
+  const {shippingRate,currency,dhlCharge}  = settings
+  const shippingCharges = isInternational?dhlCharge:shippingRate
    const subtotal = items.reduce((sum, item) => {
     const discount = item.product.discount || 0;
     const discountedPrice =
@@ -24,8 +33,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
     return sum + Math.round(discountedPrice) * item.quantity;
   }, 0);
 
-  const shipping = 150;
-  const total = Math.max(0, subtotal + shipping - discountAmount);
+  const total = Math.max(0, subtotal + shippingCharges - discountAmount);
   const applyCoupon = async()=>{
     if(!couponCode){
       setCouponError('Please enter a coupon code')
@@ -82,7 +90,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
             size={20}
           />
         </div>
-        <h1 className="text-lg md:text-xl font-semibold">Rs {total}</h1>
+        <h1 className="text-lg md:text-xl font-semibold">{`${currency} ${total}`}</h1>
       </div>
 
       {/* Collapsible Content */}
@@ -130,7 +138,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                       </div>
 
                       <p className="text-sm sm:text-base text-left pt-2 font-semibold text-gray-600">
-                        Rs{" "}
+                        {`${currency}`}{" "}
                         {Math.round(
                           item.product.price -
                             item.product.price *
@@ -165,7 +173,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
               <div className="text-sm text-gray-800 space-y-3">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-medium">Rs {subtotal}</span>
+                  <span className="font-medium">{`${currency} {subtotal}`}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Items</span>
@@ -175,17 +183,17 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied}) => {
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>Rs {shipping}</span>
+                  <span>{`${currency} ${shippingCharges}`}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
-                    <span>Rs {discountAmount}</span>
+                    <span>{`${currency} ${discountAmount}`}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-semibold border-t pt-3">
                   <span>Total</span>
-                  <span>Rs {total}</span>
+                  <span>{`${currency} ${total}`}</span>
                 </div>
               </div>
             </div>
