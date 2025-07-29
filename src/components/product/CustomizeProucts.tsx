@@ -27,7 +27,9 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${wished ? `/${product.id}` : ""}`,{
         method: wished?"DELETE":"POST",
-        headers:{Authorization:`Bearer ${session?.user.backendToken}`},
+        headers:{Authorization:`Bearer ${session?.user.backendToken}`,
+                "Content-Type":"application/json"
+        },
         body:wished?null:JSON.stringify({productId:product.id})
       });
       if(!res.ok) toast.error(`Failed to update wishlist!`)
@@ -148,7 +150,7 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
             className="flex items-center gap-2 cursor-pointer group"
           >
             <span className="text-sm text-gray-700 group-hover:text-black transition">
-             {wished?"remove from wishlist":"Add to wishlist"}
+             {wished?"Remove from wishlist":"Add to wishlist"}
             </span>
             <Heart
               className={`w-5 h-5 ${
