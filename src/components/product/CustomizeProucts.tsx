@@ -2,12 +2,14 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { Heart } from "lucide-react";
-import { useWishlistStore } from "@/utils/WishlistStore";
 import { useSelectedOptionsStore } from "@/utils/SizeStore";
 import { Product, VariantCombination } from "../utilities/types";
+import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 
 const CustomizeProducts = ({ product }: { product: Product }) => {
   const [wished, setWished] = useState(false);
+  const [loading,setLoading] = useState(false)
   const {
     selectedColor,
     selectedSize,
@@ -16,12 +18,29 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     setCombination,
     combination,
   } = useSelectedOptionsStore();
+  const {data:session} = useSession()
+  const handleWishlist = async()=>{
+    if(!session) return toast.error("You must be logged in")
+      const nextWished = !wished;
+    setWished(nextWished)
+    setLoading(true)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${wished ? `/${product.id}` : ""}`,{
+        method: wished?"DELETE":"POST",
+        headers:{Authorization:`Bearer ${session?.user.backendToken}`},
+        body:wished?null:JSON.stringify({productId:product.id})
+      });
+      if(!res.ok) toast.error(`Failed to update wishlist!`)
+    } catch (error) {
+      console.error(error)
+      toast.error(`Something went wrong while updating wishlist!`)
+      setWished(!nextWished)
+    }
+    finally{
+      setLoading(false)
+    }
+  }
 
-  const addToWishlist = useWishlistStore((state) => state.addToWishlist);
-  const removeFromWishlist = useWishlistStore(
-    (state) => state.removeFromWishlist
-  );
-  console.log(product)
   // Reset selections when product changes
   useEffect(() => {
     setSelectedColor("");
@@ -109,15 +128,6 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     setCombination(colorSizeMap[selectedColor]?.[size] || null);
   };
 
-  const handleWishlist = () => {
-    if (wished) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist({ ...product, price: product.price });
-    }
-    setWished(!wished);
-  };
-
   // Show stock information for selected combination
   const stockInfo = useMemo(() => {
     if (!combination) return null;
@@ -134,11 +144,11 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
         <div className="flex justify-between items-center">
           <h4 className="font-medium">Choose a Color</h4>
           <div
-            onClick={handleWishlist}
+            onClick={!loading?handleWishlist:undefined}
             className="flex items-center gap-2 cursor-pointer group"
           >
             <span className="text-sm text-gray-700 group-hover:text-black transition">
-              Add to Wishlist
+             {wished?"remove from wishlist":"Add to wishlist"}
             </span>
             <Heart
               className={`w-5 h-5 ${
