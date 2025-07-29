@@ -62,6 +62,11 @@ const data = {
       icon: IconEdit,
     },
     {
+      name:"Shipping Charges Management",
+      url:"/dashboard/manage-shipping",
+      icon:IconEdit,
+    },
+    {
       name: "Stock Management",
       url: "/dashboard/manage-stocks",
       icon: IconEdit,
