@@ -25,13 +25,14 @@ const WishlistClient = ({
 
   const handleRemove = async (productId: string) => {
     try {
-      console.log("Removing product",productId)
-      const cleanedProductId = productId.replace(/^\/+/, "");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${cleanedProductId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,
         {
           method: "DELETE",
-          headers:{Authorization:`Bearer ${session?.user.backendToken}`}
+          headers:{
+            "Content-Type":"application/json",
+            Authorization:`Bearer ${session?.user.backendToken}`},
+            body:JSON.stringify({productId})
         }
         
       );
