@@ -146,9 +146,7 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         !formData.firstName ||
         !formData.lastName ||
         !formData.address ||
-        !formData.phone ||
-        !formData.address ||
-        !formData.cityInput
+        !formData.phone
       ) {
         throw new Error("Please fill in all required fields");
       }

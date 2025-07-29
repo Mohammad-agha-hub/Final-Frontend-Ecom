@@ -111,7 +111,7 @@ export default function CreateProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.description || !formData.price ||  !formData.slug || imageFiles.length === 0) {
+    if (!formData.name || !formData.slug || imageFiles.length === 0) {
       setError("Please fill all required fields");
       return;
     }
