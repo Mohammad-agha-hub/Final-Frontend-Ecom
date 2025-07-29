@@ -4,6 +4,18 @@ import { authOptions } from "@/auth.config";
 
 export const dynamic = "force-dynamic";
 
+interface WishlistItem {
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    price: number;
+    discount: number;
+    images: { url: string }[];
+  };
+}
+
+
 const WishlistPage = async () => {
   const session = await getServerSession(authOptions);
   const res = await fetch(
@@ -23,7 +35,7 @@ const WishlistPage = async () => {
 
   const data = await res.json();
 
-  const wishlist = data.wishlist.map((item: any) => ({
+  const wishlist = data.wishlist.map((item: WishlistItem) => ({
     id: item.product.id,
     name: item.product.name,
     slug: item.product.slug,
