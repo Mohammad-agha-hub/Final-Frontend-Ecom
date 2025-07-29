@@ -2,6 +2,8 @@ import ProductImages from "@/components/product/ProductImages";
 import CustomizeProucts from "@/components/product/CustomizeProucts";
 import Add from "@/components/product/Add";
 import { Product } from "@/components/utilities/types";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth.config";
 
 
 export async function generateStaticParams() {
@@ -42,6 +44,30 @@ async function fetchProducts(slug: string): Promise<Product|null> {
     return null;
   }
 }
+async function fetchWish() {
+  const session = await getServerSession(authOptions);
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.user.backendToken}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch wishlist");
+
+    const data = await res.json();
+    return data?.wishlist || [];
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+    return [];
+  }
+}
+
+
 
 export default async function ProductPage({
   params,
@@ -51,7 +77,11 @@ export default async function ProductPage({
   const { slug } = await params;
 
   const singleProduct = await fetchProducts(slug);
-  
+  const wishlist = await fetchWish();
+
+  const isWished = wishlist.some(
+    (item: { productId: string }) => item.productId === singleProduct?.id
+  );
   if (!singleProduct) return <div className="h-screen flex justify-center items-center text-4xl font-bold">Product not found</div>;
  
  
@@ -96,7 +126,7 @@ export default async function ProductPage({
 
         <div className="h-[2px] bg-gray-100" />
 
-        <CustomizeProucts product={singleProduct} />
+        <CustomizeProucts wished={isWished} product={singleProduct} />
         <Add product={singleProduct} />
 
         <div className="h-[2px] bg-gray-100" />

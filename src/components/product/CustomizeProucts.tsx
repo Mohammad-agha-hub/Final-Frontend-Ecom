@@ -7,8 +7,13 @@ import { Product, VariantCombination } from "../utilities/types";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 
-const CustomizeProducts = ({ product }: { product: Product }) => {
-  const [wished, setWished] = useState(false);
+interface Props{
+  product:Product;
+  wished:boolean
+}
+
+const CustomizeProducts = ({ product,wished }:Props) => {
+  const [isWished, setIsWishsed] = useState(wished);
   const [loading,setLoading] = useState(false)
   const {
     selectedColor,
@@ -21,12 +26,12 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
   const {data:session} = useSession()
   const handleWishlist = async()=>{
     if(!session) return toast.error("You must be logged in")
-      const nextWished = !wished;
-    setWished(nextWished)
+      const nextWished = !isWished;
+    setIsWishsed(nextWished)
     setLoading(true)
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,{
-        method: wished?"DELETE":"POST",
+        method: isWished?"DELETE":"POST",
         headers:{Authorization:`Bearer ${session?.user.backendToken}`,
                 "Content-Type":"application/json"
         },
@@ -36,7 +41,7 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     } catch (error) {
       console.error(error)
       toast.error(`Something went wrong while updating wishlist!`)
-      setWished(!nextWished)
+      setIsWishsed(!nextWished)
     }
     finally{
       setLoading(false)
@@ -150,11 +155,11 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
             className="flex items-center gap-2 cursor-pointer group"
           >
             <span className="text-sm text-gray-700 group-hover:text-black transition">
-             {wished?"Remove from wishlist":"Add to wishlist"}
+             {isWished?"Remove from wishlist":"Add to wishlist"}
             </span>
             <Heart
               className={`w-5 h-5 ${
-                wished
+                isWished
                   ? "fill-red-500 text-red-600 heart-popup"
                   : "text-gray-400"
               }`}
