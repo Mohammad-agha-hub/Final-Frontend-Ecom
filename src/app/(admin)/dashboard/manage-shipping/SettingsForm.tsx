@@ -57,9 +57,15 @@ export default function SettingsForm({
       if (!res.ok) throw new Error(data.message || "Update failed");
 
       toast.success("Settings updated successfully!");
-    } catch (error: any) {
+    } catch (error) {
+      if(error instanceof Error){
       toast.error(error.message || "Something went wrong");
-    } finally {
+   }
+   else{
+    toast.error("an unexpected error occured!")
+   }
+  
+  } finally {
       setLoading(false);
     }
   };
