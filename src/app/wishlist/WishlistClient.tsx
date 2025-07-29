@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Product } from "@/components/utilities/types";
+import { useSession } from "next-auth/react";
 
 type WishlistItem = Pick<
   Product,
@@ -18,6 +19,7 @@ const WishlistClient = ({
 }: {
   initialWishlist:WishlistItem[];
 }) => {
+  const {data:session} = useSession()
   const router = useRouter();
   const [wishlist, setWishlist] = useState<WishlistItem[]>(initialWishlist);
 
@@ -27,7 +29,7 @@ const WishlistClient = ({
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${productId}`,
         {
           method: "DELETE",
-          credentials: "include",
+          headers:{Authorization:`Bearer ${session?.user.backendToken}`}
         }
       );
 
