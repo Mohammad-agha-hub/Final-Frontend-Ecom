@@ -25,14 +25,16 @@ const WishlistClient = ({
 
   const handleRemove = async (productId: string) => {
     try {
+      console.log("Removing product",productId)
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${productId}`,
         {
           method: "DELETE",
           headers:{Authorization:`Bearer ${session?.user.backendToken}`}
         }
+        
       );
-
+      console.log("removed with this",session?.user.backendToken)
       if (!res.ok) {
         throw new Error("Failed to remove from wishlist");
       }
