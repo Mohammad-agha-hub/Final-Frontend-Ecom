@@ -1,8 +1,11 @@
 // app/dashboard/layout.tsx
+import Loading from "@/app/loading";
+import { RouteTransitionProvider } from "@/components/admin/RouteTransitionProvider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "E-Commerce",
@@ -23,11 +26,13 @@ export default function DashboardLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        {children}
-      </SidebarInset>
+      <RouteTransitionProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <Suspense fallback={<Loading />}>{children}</Suspense>
+        </SidebarInset>
+      </RouteTransitionProvider>
     </SidebarProvider>
   );
 }

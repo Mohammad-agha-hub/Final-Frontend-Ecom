@@ -1,7 +1,7 @@
 // components/hero/FilteredClient.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,7 +13,7 @@ interface Product {
   id: string;
   name: string;
   slug: string;
-  images: { url: string; id: number }[]; // ✅ update this
+  images: { url: string; id: number }[]; 
   image: string;
 }
 
@@ -30,16 +30,21 @@ export default function ClientSlider({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [mounted,setMounted] = useState(false)
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: false,
     slides: { perView: 9, spacing: 20 },
     breakpoints: {
-      "(max-width: 1597px)": { slides: { perView: 8, spacing: 20 } },
-      "(max-width: 1527px)": { slides: { perView: 7, spacing: 18 } },
+      "(max-width: 1597px)": { slides: { perView: 9, spacing: 20 } },
+      "(max-width: 1527px)": { slides: { perView: 8, spacing: 18 } },
+      "(max-width: 1380px)": { slides: { perView: 7, spacing: 18 } },
+      "(max-width: 1217px)": { slides: { perView: 6, spacing: 18 } },
       "(max-width: 1024px)": { slides: { perView: 5, spacing: 17 } },
-      "(max-width: 768px)": { slides: { perView: 3, spacing: 15 } },
-      "(max-width: 480px)": { slides: { perView: 2, spacing: 10 } },
+      "(max-width: 768px)": { slides: { perView: 4, spacing: 15 } },
+      "(max-width: 605px)": { slides: { perView: 3, spacing: 15 } },
+      "(max-width: 480px)": { slides: { perView: 3, spacing: 10 } },
+      "(max-width: 450px)": { slides: { perView: 2, spacing: 10 } },
     },
     slideChanged(slider) {
       const rel = slider.track.details.rel;
@@ -63,6 +68,14 @@ export default function ClientSlider({
       }
     },
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 50); 
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchProducts = async (newPage: number) => {
     setLoading(true);
@@ -95,25 +108,25 @@ export default function ClientSlider({
     const offset = direction === "left" ? -2 : 2;
     instance.moveToIdx(current + offset);
   };
-  console.log(products)
+  if(!mounted) return null
   return (
-    <div className="w-full px-4 sm:px-6 md:px-8 relative">
+    <div className="w-full px-4 sm:px-6 md:px-8 relative min-h-[320px]">
       <div ref={sliderRef} className="keen-slider pt-4">
         {products.map((product, index) => (
           <Link
             href={`/products/${product.slug}`}
             key={`${product.id}-${index}`}
-            className="keen-slider__slide flex flex-col items-center cursor-pointer"
+            className="keen-slider__slide flex flex-col items-center cursor-pointer shrink-0"
           >
-            <div className="w-[200px] h-[260px] flex items-center justify-center overflow-hidden bg-white">
+            <div className="w-[200px] h-[260px] shrink-0 flex items-center justify-center overflow-hidden bg-white">
               
                 <Image
                   src={product.image}
                   alt={product.name}
-                  width={180}
-                  height={200}
-                  className="object-contain"
-                  sizes="(max-width: 768px) 40vw, 180px"
+                  width={200}
+                  height={260}
+                  className="object-contain h-full w-full"
+                  sizes="(max-width: 768px) 40vw, 200px"
                   loading="lazy"
                 />
               

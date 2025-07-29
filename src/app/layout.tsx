@@ -9,6 +9,7 @@ import FooterWrapper from "@/components/footer/FooterWrapper";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import Login from "@/components/navbar/Login";
 import LocalFont from 'next/font/local'
+import { RouteTransitionProvider } from "@/components/admin/RouteTransitionProvider";
 
 const poppins = LocalFont({
   src: [
@@ -39,12 +40,14 @@ export default async function RootLayout({
     <html lang="en" className={`${poppins.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            <NavbarWrapper/>
-            <Login/>
-            <Suspense fallback={<Loading />}>{children}</Suspense>
-            <FooterWrapper />
-          </div>
+          <RouteTransitionProvider>
+            <div className="min-h-screen flex flex-col">
+              <NavbarWrapper />
+              <Login />
+              <Suspense fallback={<Loading />}>{children}</Suspense>
+              <FooterWrapper />
+            </div>
+          </RouteTransitionProvider>
           <ToastContainer
             position="top-center"
             autoClose={1000}

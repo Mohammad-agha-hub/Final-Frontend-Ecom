@@ -134,7 +134,7 @@ const Login = () => {
     if (status === "authenticated") {
       setShowLoginModal(false);
     }
-  }, [setShowLoginModal]);
+  }, [setShowLoginModal,status]);
 
   // Close modal on outside click
   useEffect(() => {

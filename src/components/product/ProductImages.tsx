@@ -63,7 +63,6 @@ const ProductImages = ({ images }: Props) => {
             fill
             sizes="(max-width: 768px) 90vw, 800px"
             priority={index === 0}
-            loading="lazy"
             className="object-contain rounded-md"
           />
         </motion.div>
