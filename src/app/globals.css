@@ -113,6 +113,14 @@ body.scroll-lock {
   }
 }
 
+@media (max-width:370px) {
+    .color-choose{
+      font-size: 13px;
+    }
+    .wishlist-text{
+      font-size: 13px;
+    }
+}
 
 
 /* Checkout Padding */

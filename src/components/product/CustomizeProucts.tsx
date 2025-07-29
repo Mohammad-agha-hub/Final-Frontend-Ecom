@@ -149,12 +149,12 @@ const CustomizeProducts = ({ product,wished }:Props) => {
       {/* Color Selector */}
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center">
-          <h4 className="font-medium">Choose a Color</h4>
+          <h4 className="color-choose font-medium">Choose a Color</h4>
           <div
             onClick={!loading?handleWishlist:undefined}
             className="flex items-center gap-2 cursor-pointer group"
           >
-            <span className="text-sm text-gray-700 group-hover:text-black transition">
+            <span className="wishlist-text text-sm text-gray-700 group-hover:text-black transition">
              {isWished?"Remove from wishlist":"Add to wishlist"}
             </span>
             <Heart
