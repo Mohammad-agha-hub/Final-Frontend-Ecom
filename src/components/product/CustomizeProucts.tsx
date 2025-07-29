@@ -25,12 +25,12 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
     setWished(nextWished)
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist/${wished ? `/${product.id}` : ""}`,{
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,{
         method: wished?"DELETE":"POST",
         headers:{Authorization:`Bearer ${session?.user.backendToken}`,
                 "Content-Type":"application/json"
         },
-        body:wished?null:JSON.stringify({productId:product.id})
+        body:JSON.stringify({productId:product.id})
       });
       if(!res.ok) toast.error(`Failed to update wishlist!`)
     } catch (error) {
@@ -146,7 +146,7 @@ const CustomizeProducts = ({ product }: { product: Product }) => {
         <div className="flex justify-between items-center">
           <h4 className="font-medium">Choose a Color</h4>
           <div
-            onClick={!loading?handleWishlist:undefined}
+            onClick={handleWishlist}
             className="flex items-center gap-2 cursor-pointer group"
           >
             <span className="text-sm text-gray-700 group-hover:text-black transition">
