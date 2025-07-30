@@ -65,7 +65,7 @@ export interface VariantCombination {
   size: string;
   color: string;
   stock: number;
-  price: number;
-  sku?: string;
-  image?: string;
+  price: number
+  sku?: string
+  image?: string
 }
