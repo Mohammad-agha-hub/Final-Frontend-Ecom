@@ -29,11 +29,18 @@ const Login = () => {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/");
+      setIsCheckingAuth(false);
+
+      // Only redirect if you're not already on callbackUrl
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath !== callbackUrl) {
+        router.replace(callbackUrl);
+      }
     } else if (status === "unauthenticated") {
       setIsCheckingAuth(false);
     }
-  }, [status, router]);
+  }, [status, router, callbackUrl]);
+  
 
   const loginMutation = useMutation({
     mutationFn: async ({callbackUrl}:{callbackUrl:string}) => {
