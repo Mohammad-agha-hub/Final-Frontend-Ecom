@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Eye,EyeOff } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 const Login = () => {
   const { status } = useSession();
@@ -17,7 +18,8 @@ const Login = () => {
   const router = useRouter();
  const [showPassword,setShowPassword] = useState(false)
   const [showConfirmPassword,setShowConfirmPassword] = useState(false)
- 
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
   const [userDetails, setUserDetails] = useState({
     username: "",
     email: "",
@@ -34,11 +36,12 @@ const Login = () => {
   }, [status, router]);
 
   const loginMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({callbackUrl}:{callbackUrl:string}) => {
       const res = await signIn("credentials", {
         redirect: false,
         email: userDetails.email,
         password: userDetails.password,
+        callbackUrl
       });
 
       if (!res?.ok) {
@@ -49,7 +52,7 @@ const Login = () => {
     onSuccess: () => {
       toast.success("Login successful!");
       router.refresh();
-      router.push("/");
+      router.replace(callbackUrl);
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -90,7 +93,7 @@ const Login = () => {
     },
     onSuccess: () => {
       toast.success("Account created successfully! Logging you in...");
-      loginMutation.mutate();
+      loginMutation.mutate({callbackUrl});
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -100,7 +103,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       await signIn("google", {
-        callbackUrl: `${window.location.origin}`,
+        callbackUrl,
       });
     } catch (error) {
       toast.error("Google login failed");
@@ -116,7 +119,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "login") {
-      loginMutation.mutate();
+      loginMutation.mutate({callbackUrl});
     } else {
       signupMutation.mutate();
     }

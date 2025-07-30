@@ -48,9 +48,13 @@ const Add = ({ product }: { product: Product }) => {
   };
 
   const handleCart = async () => {
-    if(!session?.user.backendToken){
-      router.push('/login')
+    if (!session?.user.backendToken) {
+      router.push(
+        `/login?callbackUrl=${encodeURIComponent(window.location.href)}`
+      );
+      return;
     }
+    
     if (!selectedSize) {
       toast.warning("Please select a size");
       return;
