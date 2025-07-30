@@ -90,6 +90,10 @@ export default function ManageBanners() {
     if (!confirm("Are you sure?")) return;
     await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos/${id}`, {
       method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.user.backendToken}`,
+      },
     });
     toast.success("Banner deleted successfully!")
     fetchBanners();
@@ -100,7 +104,10 @@ export default function ManageBanners() {
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/logos/${banner.id}`,
       {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.user.backendToken}`,
+        },
         body: JSON.stringify({ ...banner, active: !banner.active }),
       }
     );

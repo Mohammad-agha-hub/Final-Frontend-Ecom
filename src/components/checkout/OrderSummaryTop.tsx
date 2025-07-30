@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCartStore } from "@/utils/CartStore";
 import { useSettingsStore } from "@/utils/shippingStore";
+import { useSession } from "next-auth/react";
 
 interface OrderSummaryProps {
   onCouponApplied?: (code: string, amount: number) => void;
@@ -17,6 +18,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternat
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
   const {items} = useCartStore()
+  const {data:session} = useSession()
   const [openOrder, setOpenOrder] = useState(false);
   const {shippingRate,currency,dhlCharges}  = useSettingsStore()
   const shippingCharges = isInternational?dhlCharges:shippingRate
@@ -38,6 +40,7 @@ const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternat
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+         Authorization: `Bearer ${session?.user.backendToken}`,
         },
         body: JSON.stringify({ code: couponCode }),
       });

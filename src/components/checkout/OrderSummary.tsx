@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useCartStore } from '@/utils/CartStore';
 import { useSettingsStore } from '@/utils/shippingStore';
+import { useSession } from "next-auth/react";
 
   
 interface OrderSummaryProps {
@@ -17,7 +18,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
   const [couponError,setCouponError] = useState('')
   const {shippingRate,dhlCharges,currency} = useSettingsStore()
   const {items} = useCartStore() 
-
+ const {data:session} = useSession()
   const subtotal = items.reduce((sum, item) => {
     const discount = item.product.discount || 0;
     const discountedPrice =
@@ -33,13 +34,17 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
       return;
     } 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/coupons/apply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: couponCode }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/coupons/apply`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.user.backendToken}`,
+          },
+          body: JSON.stringify({ code: couponCode }),
+        }
+      );
       const data = await res.json()
       if(!data.success){
         setCouponError(data.message || 'Invalid Coupon')
