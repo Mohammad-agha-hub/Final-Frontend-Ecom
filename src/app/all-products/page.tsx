@@ -8,7 +8,11 @@ type ColorVariant = {
 interface Props{
   searchParams:Promise<{search?:string}>;
 }
+import { Metadata } from "next";
 
+export const metadata:Metadata={
+  title:"Search Products"
+}
 export default async function Collection({searchParams}:Props) {
   // Fetch products
   const res = await fetch(

@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
+import { useSettingsStore } from "@/utils/shippingStore";
 interface Variant {
   id: string;
   key: string;
@@ -42,6 +43,7 @@ const StockManagement: React.FC<Props> = ({
   backendToken,
 }) => {
   const {data:session} = useSession()
+  const {currency} = useSettingsStore()
   const [combinations, setCombinations] =
     useState<VariantCombination[]>(initialData);
   const [loading, setLoading] = useState(false);
@@ -212,7 +214,7 @@ const StockManagement: React.FC<Props> = ({
                       <div>
                         <p className="font-medium">{variantText}</p>
                         <p className="text-sm text-muted-foreground">
-                          Price: Rs {combo.price} | Stock: {combo.stock}
+                          Price: {currency} {combo.price} | Stock: {combo.stock}
                         </p>
                         {isLow && (
                           <p className="text-sm text-red-500 font-semibold">

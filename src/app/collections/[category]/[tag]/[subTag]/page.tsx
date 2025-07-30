@@ -16,6 +16,11 @@ interface TagType {
     name: string;
   };
 }
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Collections"
+}
 type ColorVariant = {
   value: string; // e.g., "#0787a6"
 };

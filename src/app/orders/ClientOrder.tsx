@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Loading from "../loading";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 type OrderItem = {
   id: string;
@@ -40,7 +41,7 @@ type OrderItem = {
 export default function OrderClient({ orders }: { orders: OrderItem[] }) {
   const [orderItems] = useState<OrderItem[]>(orders);
   const [loading] = useState(false);
-
+  const {currency} = useSettingsStore()
   const formatDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -134,7 +135,7 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                         </p>
 
                         <p className="text-sm text-gray-600">
-                          Price: Rs {item.price.toLocaleString()}
+                          Price: {currency} {item.price.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -164,18 +165,18 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                       <div className="flex justify-between">
                         <span>Shipping Charges</span>
                         <span>
-                          Rs {(order.shippingAmount ?? 0).toLocaleString()}
+                          {currency} {(order.shippingAmount ?? 0).toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Discount</span>
                         <span>
-                          - Rs {order.discountAmount.toLocaleString()}
+                          - {currency} {order.discountAmount.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between font-bold text-gray-900 mt-2">
                         <span>Total</span>
-                        <span>Rs {order.totalAmount.toLocaleString()}</span>
+                        <span>{currency} {order.totalAmount.toLocaleString()}</span>
                       </div>
                       <div className="mt-2">
                         <span className="text-gray-600">Payment: </span>

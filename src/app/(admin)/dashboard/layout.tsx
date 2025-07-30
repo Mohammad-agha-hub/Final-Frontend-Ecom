@@ -8,8 +8,11 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "E-Commerce",
-  description: "Ecommerce-Website",
+  title: {
+    default: "OGAAN Online Design Store",
+    template: "%s - Online Design Store",
+  },
+  description: "OGAAN Online Design Store",
 };
 
 export default function DashboardLayout({

@@ -7,6 +7,12 @@ import type { Variant } from "./VariantManagement";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic"; // optional, if you want SSR for each request
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Create Variant"
+}
+
 export default async function VariantManagementPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.isAdmin !== true) {

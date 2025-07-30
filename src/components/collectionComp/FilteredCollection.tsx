@@ -7,6 +7,7 @@ import { ShoppingCart } from "lucide-react";
 import { useFilterStore } from "@/utils/FilterStore";
 import { Product } from "../utilities/types";
 import { useRouter } from "next/navigation";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 type FilteredCollectionProps = {
   columns: number;
@@ -18,7 +19,7 @@ const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
   const filters = useFilterStore((state) => state.filters);
   const sortBy = useFilterStore((state) => state.sortBy);
   const router = useRouter();
-
+  
   let products: Product[] = items.filter((item) => {
     const effectivePrice =
       item.price - Math.round((item.price * item.discount) / 100);
@@ -78,7 +79,7 @@ const FilteredCollection = ({ columns, items }: FilteredCollectionProps) => {
     router.push(`/products/${item.slug}`);
     router.refresh();
   };
-
+  
   const gridColsClass: Record<number, string> = {
     2: "grid-cols-2",
     3: "grid-cols-3",
@@ -115,7 +116,7 @@ type ProductCardProps = {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const [hovered, setHovered] = useState(false);
-
+  const { currency } = useSettingsStore();
   return (
     <div
       className="relative group w-full overflow-hidden rounded-lg shadow-md border border-gray-200"
@@ -175,14 +176,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h1>
         <div className="flex justify-center gap-1">
           <span className="text-[10px] sm:text-sm text-gray-900">
-            Rs{" "}
+            {currency}{" "}
             {product.price -
               Math.round((product.price * product.discount) / 100)}
           </span>
           {product.discount > 0 && (
             <>
               <span className="text-[10px] sm:text-sm text-gray-600 line-through">
-                Rs {product.price}
+                {currency} {product.price}
               </span>
               <span className="text-[10px] sm:text-sm text-red-400">{product.discount}%</span>
             </>

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
+import { useSettingsStore } from "@/utils/shippingStore";
+
 interface Tag {
   id: string;
   name: string;
@@ -51,7 +53,7 @@ interface Product {
   price: number;
   image: string;
   stock: number;
-  images:ProductImage[];
+  images: ProductImage[];
   discount?: number;
   createdAt: string;
   category?: Category | null;
@@ -63,12 +65,15 @@ interface ProductListClientProps {
   initialProducts: Product[];
 }
 
-export default function ProductView({ initialProducts }: ProductListClientProps) {
-  
+export default function ProductView({
+  initialProducts,
+}: ProductListClientProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const products = initialProducts;
-  const {data:session} = useSession()
+  const { data: session } = useSession();
+  const { currency } = useSettingsStore();
+
   const filtered = useMemo(
     () =>
       products.filter((p) =>
@@ -82,33 +87,56 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
 
   const getVariantSummary = (product: Product) => {
     const combinations = product.variantCombinations || [];
-    if (!combinations.length) return "No variants";
+    if (!combinations.length) return <span>No variants</span>;
 
     const allVariants = combinations.flatMap(
       (combo) => combo.variants?.map((v) => v.variant) || []
     );
 
-    const uniqueValues = new Set(allVariants.map((v) => `${v.key}:${v.value}`));
-    const summaryText = Array.from(uniqueValues)
-      .map((entry) => {
-        const [key, value] = entry.split(":");
-        return `${value} (${key})`;
-      })
-      .join(", ");
+    const uniqueVariants = Array.from(
+      new Map(allVariants.map((v) => [`${v.key}:${v.value}`, v])).values()
+    );
 
-    return `${combinations.length} variant${
-      combinations.length > 1 ? "s" : ""
-    } — ${summaryText}`;
+    return (
+      <div className="flex flex-wrap items-center gap-2 mt-1">
+        <span className="text-gray-500 text-xs italic">
+          {combinations.length} variant{combinations.length > 1 ? "s" : ""}
+        </span>
+        {uniqueVariants.map((variant, idx) => {
+          const isColor =
+            variant.key.toLowerCase() === "color" &&
+            /^#([0-9a-f]{3}){1,2}$/i.test(variant.value);
+
+          return isColor ? (
+            <div
+              key={idx}
+              className="w-4 h-4 rounded-full border"
+              style={{ backgroundColor: variant.value }}
+              title={`${variant.value} (${variant.key})`}
+            />
+          ) : (
+            <span
+              key={idx}
+              className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded"
+            >
+              {variant.value} ({variant.key})
+            </span>
+          );
+        })}
+      </div>
+    );
   };
-  if(!session || session.user.isAdmin !== true){
+
+  if (!session || session.user.isAdmin !== true) {
     return (
       <div className="text-center text-destructive mt-10 text-lg font-semibold">
         Access denied.
       </div>
-    );}
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Product Inventory</h1>
 
@@ -132,7 +160,6 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
         </div>
       </div>
 
-      {/* Product Cards */}
       {filtered.length === 0 ? (
         <div className="text-center text-gray-500">No products found.</div>
       ) : (
@@ -164,7 +191,10 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
                   Category: {product.category?.name || "Uncategorized"}
                 </p>
                 <p className="text-sm text-gray-700">
-                  Price: <span className="font-medium">Rs {product.price}</span>
+                  Price:{" "}
+                  <span className="font-medium">
+                    {currency} {product.price}
+                  </span>
                 </p>
                 <p className="text-sm text-gray-700">
                   Discount:{" "}
@@ -194,9 +224,7 @@ export default function ProductView({ initialProducts }: ProductListClientProps)
                   </span>
                 </p>
 
-                <p className="text-xs text-gray-400 italic">
-                  {getVariantSummary(product)}
-                </p>
+                <div className="text-xs">{getVariantSummary(product)}</div>
 
                 {product.productTags.length > 0 && (
                   <div className="space-y-1">

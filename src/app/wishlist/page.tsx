@@ -3,7 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 
 export const dynamic = "force-dynamic";
+import { Metadata } from "next";
 
+export const metadata:Metadata={
+  title:"Wishlist"
+}
 interface WishlistItem {
   product: {
     id: string;

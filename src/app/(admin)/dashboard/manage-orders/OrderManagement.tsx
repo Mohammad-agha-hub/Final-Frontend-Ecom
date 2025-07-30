@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 interface Order {
   id: string;
@@ -79,7 +80,7 @@ export default function OrderManagement({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
+  const {currency} = useSettingsStore()
   const fetchOrders = useCallback(
     async (page = 1) => {
       try {
@@ -237,7 +238,7 @@ export default function OrderManagement({
                     <TableCell>
                       {order.paymentMethod === "cod" ? "COD" : "Paypal"}
                     </TableCell>
-                    <TableCell>Rs {order.totalAmount}</TableCell>
+                    <TableCell>{currency} {order.totalAmount}</TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>
                       <div className="relative">
@@ -394,7 +395,7 @@ export default function OrderManagement({
                                 </p>
                                 <p>
                                   <span className="font-semibold">Total: </span>
-                                  Rs {selectedOrder.totalAmount}
+                                  {currency} {selectedOrder.totalAmount}
                                 </p>
                               </div>
                               <div>

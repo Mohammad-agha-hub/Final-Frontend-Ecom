@@ -6,6 +6,12 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Create Tag"
+}
+
 export default async function TagManagementPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.backendToken) return null;

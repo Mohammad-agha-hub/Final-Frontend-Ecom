@@ -4,6 +4,12 @@ import { authOptions} from '../../../../../auth.config'
 import VariantFormClient from "@/components/admin/VariantFormClient";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Edit Variant"
+}
+
 export default async function EditVariant({
   params
 }: {

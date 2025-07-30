@@ -1,6 +1,12 @@
 // app/(admin)/settings/page.tsx
 import SettingsForm from "./SettingsForm";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Manage Settings"
+}
+
 export default async function SettingsPage() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/settings`, {
     cache: "no-store",

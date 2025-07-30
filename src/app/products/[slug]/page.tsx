@@ -1,11 +1,13 @@
-import ProductImages from "@/components/product/ProductImages";
-import CustomizeProucts from "@/components/product/CustomizeProucts";
-import Add from "@/components/product/Add";
-import { Product } from "@/components/utilities/types";
+// app/product/[slug]/page.tsx
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
+import ProductClient from "./ProductClient";
+import { Product } from "@/components/utilities/types";
+import { Metadata } from "next";
 
-
+type Props = {
+  params:Promise<{slug:string}>
+}
 export async function generateStaticParams() {
   try {
     const res = await fetch(
@@ -14,45 +16,66 @@ export async function generateStaticParams() {
         next: { revalidate: 60 },
       }
     );
-    if (!res.ok) throw new Error("fetch failed! in generate static paramss");
+    if (!res.ok) throw new Error("Failed to fetch products");
     const data = await res.json();
 
     return data.products.map((product: { slug: string }) => ({
       slug: product.slug,
     }));
   } catch (error) {
-      console.error("generatestaticparams error",error)
-      return []
+    console.error("Error in generateStaticParams:", error);
+    return [];
   }
 }
 
-// Fetch product(s) by slug
-async function fetchProducts(slug: string): Promise<Product|null> {
+export async function generateMetadata({params}:Props): Promise<Metadata> {
+  const {slug} = await params
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/product/${slug}`,
+    { next: { revalidate: 60 } }
+  );
+  const data = await res.json();
+  const product = data.product;
+  return {
+    title: product.name,
+    description:product.description,
+    openGraph:{
+      images:[
+        {
+          url:product.images.url||""
+        }
+      ]
+    }
+  };
+}
+
+
+
+async function fetchProduct(slug: string): Promise<Product | null> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/product/${slug}`,
-      { next:{revalidate:60} }
+      { next: { revalidate: 60 } }
     );
 
     if (!res.ok) throw new Error("Failed to fetch product");
 
     const data = await res.json();
-    
-    return data?.product??null
+    return data?.product ?? null;
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
   }
 }
-async function fetchWish() {
-  const session = await getServerSession(authOptions);
+
+async function fetchWishlist(token: string | undefined) {
+  if (!token) return [];
+
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,
       {
-        headers: {
-          Authorization: `Bearer ${session?.user.backendToken}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       }
     );
@@ -67,89 +90,26 @@ async function fetchWish() {
   }
 }
 
-
-
 export default async function ProductPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const {slug} = await params
+  const session = await getServerSession(authOptions);
+  const product = await fetchProduct(slug);
+  const wishlist = await fetchWishlist(session?.user.backendToken);
 
-  const singleProduct = await fetchProducts(slug);
-  const wishlist = await fetchWish();
+  if (!product)
+    return (
+      <div className="h-screen flex justify-center items-center text-4xl font-bold">
+        Product not found
+      </div>
+    );
 
   const isWished = wishlist.some(
-    (item: { productId: string }) => item.productId === singleProduct?.id
+    (item: { productId: string }) => item.productId === product.id
   );
-  if (!singleProduct) return <div className="h-screen flex justify-center items-center text-4xl font-bold">Product not found</div>;
- 
- 
-  return (
-    <div className="px-1 md:px-[10%] lg:px-10 xl:px-25 2xl:px-40 relative flex flex-col lg:flex-row gap-16">
-      {/* Product Images */}
-      <div className="w-full lg:w-1/2 lg:sticky top-18 h-max">
-        <ProductImages
-          images={singleProduct.images.map((img) => ({
-            id: String(img.id), // cast number → string
-            url: img.url,
-          }))}
-        />
-      </div>
 
-      {/* Product Info */}
-      <div className="w-full sm:px-8 px-6 lg:w-1/2 flex flex-col gap-6 py-4">
-        <h1 className="text-4xl font-medium">{singleProduct.name}</h1>
-        <p className="text-gray-500">{singleProduct.description}</p>
-        <div className="h-[2px] bg-gray-100" />
-
-        {/* Pricing */}
-        <div className="flex items-center gap-4">
-          {singleProduct.discount > 0 ? (
-            <>
-              <h3 className="text-xl text-gray-500 line-through">
-                Rs {(+singleProduct.price).toLocaleString("en-PK")}
-              </h3>
-              <h2 className="font-medium text-2xl">
-                Rs{" "}
-                {Math.round(
-                  +singleProduct.price * (1 - singleProduct.discount / 100)
-                ).toLocaleString("en-PK")}
-              </h2>
-            </>
-          ) : (
-            <h2 className="font-medium text-2xl">
-              Rs {(+singleProduct.price).toLocaleString("en-PK")}
-            </h2>
-          )}
-        </div>
-
-        <div className="h-[2px] bg-gray-100" />
-
-        <CustomizeProucts wished={isWished} product={singleProduct} />
-        <Add product={singleProduct} />
-
-        <div className="h-[2px] bg-gray-100" />
-
-        {/* Extra Info */}
-        <div className="text-sm space-y-6">
-          <div>
-            <h4 className="font-medium mb-4">Fabric & Care</h4>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-4">Delivery & Returns</h4>
-            <p>
-              Free delivery over Rs 5,000. Returns within 7 days if product is
-              unused.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-4">Size & Fit</h4>
-            <p>True to size. Model is wearing Medium size.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <ProductClient product={product} wished={isWished} />;
 }

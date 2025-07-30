@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 type Address = {
   address: string;
@@ -62,7 +63,7 @@ export default function DataTable({ orders, users }: Props) {
     "customer"
   );
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
+  const {currency} = useSettingsStore()
   const getUser = (userId: string) => users.find((u) => u.id === userId);
 
   const getStatusBadge = (status: string) => {
@@ -150,7 +151,7 @@ export default function DataTable({ orders, users }: Props) {
                           {getStatusBadge(order.status)}
                         </td>
                         <td className="px-4 py-2 font-semibold">
-                          Rs. {order.totalAmount}
+                          {currency} {order.totalAmount}
                         </td>
                         <td className="px-4 py-2">
                           {new Date(order.createdAt).toLocaleDateString(
@@ -274,7 +275,7 @@ export default function DataTable({ orders, users }: Props) {
                 <strong>Status:</strong> {selectedOrder.status}
               </div>
               <div>
-                <strong>Total:</strong> Rs. {selectedOrder.totalAmount}
+                <strong>Total:</strong> {currency} {selectedOrder.totalAmount}
               </div>
               <div>
                 <strong>Items:</strong>

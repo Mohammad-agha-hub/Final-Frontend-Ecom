@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCartStore } from "@/utils/CartStore";
 import { toast } from "react-toastify";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 
 countries.registerLocale(en);
@@ -16,13 +17,6 @@ countries.registerLocale(en);
 interface CheckoutDetailProps {
   couponCode: string;
   discountAmount: number;
-  settings: {
-    id: string;
-    currency: string;
-    shippingRate: number;
-    dhlCharge: number;
-    updatedAt: string;
-  };
   isInternational:boolean;
   setIsInternational:(value:boolean)=>void
 }
@@ -98,14 +92,13 @@ const Dropdown = ({
 const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
   couponCode,
   discountAmount,
-  settings,
   isInternational,
   setIsInternational,
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const { shippingRate, dhlCharge, currency } = settings;
+  const { shippingRate, dhlCharges, currency } = useSettingsStore();
   const [countriesList, setCountriesList] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("Pakistan");
   const [selectedCity, setSelectedCity] = useState("");
@@ -138,7 +131,7 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
   }, []);
   useEffect(()=>{
     setIsInternational(selectedCountry !== "Pakistan");
-  },[selectedCountry,setSelectedCountry])
+  },[selectedCountry,setSelectedCountry,setIsInternational])
 
   const hasFilledFields =
     formData.address &&
@@ -181,7 +174,7 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
         })),
         paymentMethod: selectedPayment,
         couponCode: couponCode || undefined,
-        shippingAmount: isInternational ? dhlCharge : shippingRate,
+        shippingAmount: isInternational ? dhlCharges : shippingRate,
         shippingAddress: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -407,9 +400,9 @@ const CheckoutDetail: React.FC<CheckoutDetailProps> = ({
           <span className="text-sm font-medium">
             {isInternational
               ? hasFilledFields
-                ? `${currency}${dhlCharge}`
+                ? `${currency} ${dhlCharges}`
                 : ""
-              : `${currency}${shippingRate}`}
+              : `${currency} ${shippingRate}`}
           </span>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSidebarStore } from "@/utils/SidebarStore";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 export default function CartSidebar() {
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -26,7 +27,7 @@ export default function CartSidebar() {
     syncCart,
     loading,
   } = useCartStore();
-
+  const {currency} = useSettingsStore()
   const [isSyncing, setIsSyncing] = useState(false);
 
   const { totalPrice, itemCount } = useMemo(() => {
@@ -191,7 +192,7 @@ export default function CartSidebar() {
                             {item.product.name}
                           </h3>
                           <p className="font-semibold whitespace-nowrap ml-2">
-                            Rs {displayPrice.toLocaleString()}
+                            {currency} {displayPrice.toLocaleString()}
                           </p>
                         </div>
                         {(color || size) && (
@@ -265,7 +266,7 @@ export default function CartSidebar() {
             <div className="flex justify-between items-center mb-4">
               <span className="font-medium">Subtotal</span>
               <span className="font-semibold">
-                Rs {totalPrice.toLocaleString()}
+                {currency} {totalPrice.toLocaleString()}
               </span>
             </div>
             <button
@@ -282,7 +283,7 @@ export default function CartSidebar() {
                 <>
                   <span>Checkout</span>
                   <span>•</span>
-                  <span>Rs {totalPrice.toLocaleString()}</span>
+                  <span>{currency} {totalPrice.toLocaleString()}</span>
                 </>
               )}
             </button>

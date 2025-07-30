@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import { redirect } from "next/navigation";
 import ClientOrder from "./ClientOrder";
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Order History"
+}
 
 export default async function OrderHistoryPage() {
   const session = await getServerSession(authOptions);

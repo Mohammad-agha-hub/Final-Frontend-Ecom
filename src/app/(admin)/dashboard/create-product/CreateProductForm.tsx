@@ -156,8 +156,10 @@ export default function CreateProductForm({
 
       const result = await res.json();
       if (!res.ok) toast.error(result.message || "Failed to create product");
-      toast.success("Created Product Successfully!")
-      router.push(`/dashboard/view-products`);
+      toast.success("Created Product Successfully!",{
+        onClose:()=>router.push(`/dashboard/view-products`)
+      })
+      
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {

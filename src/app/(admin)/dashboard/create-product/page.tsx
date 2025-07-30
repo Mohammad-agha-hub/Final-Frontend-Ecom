@@ -4,6 +4,12 @@ import { authOptions } from "../../../../auth.config";
 import CreateProductForm from "./CreateProductForm";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Create Product"
+}
+
 export interface Tag {
   id: string;
   name: string;

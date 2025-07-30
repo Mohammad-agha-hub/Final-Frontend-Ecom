@@ -147,8 +147,12 @@ export default function EditProductClient({
       );
 
       if (!res.ok) toast.error("Failed to save product");
-      toast.success("Updated Product Successfully!")
-      router.push("/dashboard/view-products");
+      toast.success("Updated Product Successfully!",
+        {
+          onClose:()=> router.push("/dashboard/view-products")
+        }
+      )
+     
     } catch (e) {
       toast.error((e as Error).message);
     } finally {

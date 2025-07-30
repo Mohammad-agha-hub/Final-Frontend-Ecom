@@ -4,6 +4,12 @@ import { authOptions } from "@/auth.config";
 import OrderManagement from "./OrderManagement";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Manage Orders"
+}
+
 export default async function AdminOrdersPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.isAdmin !== true) {

@@ -5,27 +5,21 @@ import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCartStore } from "@/utils/CartStore";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 interface OrderSummaryProps {
   onCouponApplied?: (code: string, amount: number) => void;
-  settings: {
-    id: string;
-    currency: string;
-    shippingRate: number;
-    dhlCharge: number;
-    updatedAt: string;
-  };
   isInternational:boolean
 }
 
-const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied,settings,isInternational}) => {
+const OrderSummaryTop:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternational}) => {
   const [couponCode,setCouponCode] = useState('')
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
   const {items} = useCartStore()
   const [openOrder, setOpenOrder] = useState(false);
-  const {shippingRate,currency,dhlCharge}  = settings
-  const shippingCharges = isInternational?dhlCharge:shippingRate
+  const {shippingRate,currency,dhlCharges}  = useSettingsStore()
+  const shippingCharges = isInternational?dhlCharges:shippingRate
    const subtotal = items.reduce((sum, item) => {
     const discount = item.product.discount || 0;
     const discountedPrice =

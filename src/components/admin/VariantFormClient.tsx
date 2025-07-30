@@ -51,7 +51,7 @@ interface Variant {
 
 type VariantOptions = Record<string, Variant[]>;
 
-export default function EditProductClient({
+export default function VariantFormClient({
   product,
   token,
   variantOptions,
@@ -144,8 +144,10 @@ export default function EditProductClient({
       );
 
       if (!res.ok) toast.error("Failed to save variant combinations");
-      toast.success("Variant Updated Successfully!")
-      router.push("/dashboard/view-products");
+      toast.success("Variant Updated Successfully!",{
+        onClose:()=> router.push("/dashboard/view-products")
+      })
+    
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -216,7 +218,7 @@ export default function EditProductClient({
                     {key.toLowerCase() === "color" ? (
                       <Input
                         type="color"
-                        value={combo.variants[key]}
+                        value={combo.variants[key] || "#000000"}
                         onChange={(e) =>
                           updateComboVariant(idx, key, e.target.value)
                         }

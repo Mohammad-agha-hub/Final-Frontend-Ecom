@@ -4,6 +4,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"View Product"
+}
+
 export default async function ProductListPage() {
   const session = await getServerSession(authOptions);  
   if (!session || session.user.isAdmin !== true) {

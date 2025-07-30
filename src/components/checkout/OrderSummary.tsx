@@ -3,25 +3,19 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useCartStore } from '@/utils/CartStore';
+import { useSettingsStore } from '@/utils/shippingStore';
 
   
 interface OrderSummaryProps {
   onCouponApplied?: (code: string, amount: number) => void;
-  settings: {
-    id: string;
-    currency: string;
-    shippingRate: number;
-    dhlCharge: number;
-    updatedAt: string;
-  };
   isInternational:boolean
 }
-const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,settings,isInternational}) => {
+const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternational}) => {
   
   const [couponCode,setCouponCode] = useState('')
   const [discountAmount,setDiscountAmount] = useState(0)
   const [couponError,setCouponError] = useState('')
-  const {shippingRate,dhlCharge,currency} = settings
+  const {shippingRate,dhlCharges,currency} = useSettingsStore()
   const {items} = useCartStore() 
 
   const subtotal = items.reduce((sum, item) => {
@@ -30,7 +24,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,settings,isIn
       item.product.price - item.product.price * (discount / 100);
     return sum + Math.round(discountedPrice) * item.quantity;
   }, 0);
-  const shippingCharges = isInternational?dhlCharge:shippingRate
+  const shippingCharges = isInternational?dhlCharges:shippingRate
   const total = Math.max(0, subtotal + shippingCharges - discountAmount);
   
   const applyCoupon = async()=>{

@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import Image from "next/image";
 import { Product } from "../utilities/types";
 import { useSidebarStore } from "@/utils/SidebarStore";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 
 const SearchSidebar =({products}:{products:Product[]}) => {
@@ -13,7 +14,7 @@ const SearchSidebar =({products}:{products:Product[]}) => {
   const [search, setSearch] = useState("");
   const [filteredItems, setFilteredItems] = useState<Product[]>([]);
   const sidebarRef = useRef<HTMLDivElement>(null);
- 
+  const {currency} = useSettingsStore()
   // Filter products on search change
   useEffect(() => {
     const filtered = products.filter((product) =>
@@ -92,7 +93,30 @@ const SearchSidebar =({products}:{products:Product[]}) => {
                     <p className="text-sm font-medium text-gray-800">
                       {item.name}
                     </p>
-                    <p className="text-xs text-gray-500">RS {item.price}</p>
+                    <div className="flex items-center  gap-2">
+                      {item.discount > 0 && (
+                        <span className="text-gray-500 font-medium text-[0.8rem]">
+                          {currency}{" "}
+                          {Math.round(
+                            +item.price * (1 - (item.discount || 0) / 100)
+                          )}
+                        </span>
+                      )}
+                      <p
+                        className={
+                          item.discount > 0
+                            ? "line-through text-xs text-gray-500"
+                            : `text-xs text-gray-500 `
+                        }
+                      >
+                        {currency} {item.price}
+                      </p>
+                      {item.discount > 0 && (
+                        <span className="text-red-500 font-medium text-[0.8rem]">
+                          {item.discount}%
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -103,11 +127,10 @@ const SearchSidebar =({products}:{products:Product[]}) => {
 
           <h1
             onClick={() => {
-                window.location.href = `/all-products?search=${encodeURIComponent(
-                  search
-                )}`;
-              }
-            }
+              window.location.href = `/all-products?search=${encodeURIComponent(
+                search
+              )}`;
+            }}
             className="font-semibold text-[#222] px-5 py-2 border-b border-gray-200 shadow-[0_3px_10px_#81818133]"
           >
             {search ? `Search For "${search}"` : "Start typing to search..."}

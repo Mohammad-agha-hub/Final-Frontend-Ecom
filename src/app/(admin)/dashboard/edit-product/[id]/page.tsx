@@ -4,6 +4,12 @@ import { authOptions} from '../../../../../auth.config'
 import EditProductForm from "@/components/admin/EditProductForm";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Edit Product"
+}
+
 export default async function EditProductPage({
   params
 }: {

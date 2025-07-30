@@ -9,6 +9,7 @@ interface TagType {
   slug: string;
   parent?: {
     name: string;
+    slug:string;
   };
 }
 interface ProductImage {

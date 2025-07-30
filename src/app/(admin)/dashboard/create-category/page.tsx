@@ -3,6 +3,12 @@ import { authOptions } from "@/auth.config";
 import { redirect } from "next/navigation";
 import CategoryManagement from "./CategoryManagement";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Create Category"
+}
+
 export default async function CategoryPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.isAdmin !== true) {

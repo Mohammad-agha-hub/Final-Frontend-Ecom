@@ -3,6 +3,12 @@ import { authOptions} from '../../../auth.config';
 import OrderConfirmation from '../../../components/OrderConfirmation'
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Order Confirmation"
+}
+
 export default async function OrderConfirmationPage({params}:{
   params:Promise<{orderId:string}>
 }) {

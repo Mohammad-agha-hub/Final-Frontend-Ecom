@@ -10,6 +10,7 @@ import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import Login from "@/components/navbar/Login";
 import LocalFont from 'next/font/local'
 import { RouteTransitionProvider } from "@/components/admin/RouteTransitionProvider";
+import SettingsInitializer from "@/components/utilities/SettingsIntializer";
 
 const poppins = LocalFont({
   src: [
@@ -23,10 +24,16 @@ const poppins = LocalFont({
   display: "swap",
 });
 
+
+
 export const metadata: Metadata = {
-  title: "E-Commerce",
-  description: "Ecommerce-Website",
+  title:{
+    default:"OGAAN Online Design Store",
+    template:"%s - Online Design Store"
+  },
+  description: "OGAAN Online Design Store",
 };
+
 
 
 export default async function RootLayout({
@@ -35,18 +42,27 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/settings`,{
+    cache:"no-store"
+  })
+  if(!res.ok){
+    throw new Error("Failed to fetch settings!")
+  }
+  const {data:Settings} = await res.json()
 
   return (
     <html lang="en" className={`${poppins.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
           <RouteTransitionProvider>
+            <SettingsInitializer settings={Settings}>
             <div className="min-h-screen flex flex-col">
               <NavbarWrapper />
               <Login />
               <Suspense fallback={<Loading />}>{children}</Suspense>
               <FooterWrapper />
             </div>
+            </SettingsInitializer>
           </RouteTransitionProvider>
           <ToastContainer
             position="top-center"

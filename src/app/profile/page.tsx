@@ -1,14 +1,12 @@
 import ProfilePage from '@/components/user/Profile'
 import React from 'react'
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
-import { redirect } from "next/navigation";
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Update Profile"
+}
 
 export default async function Profile(){
-   const session = await getServerSession(authOptions);
-     if (!session || session.user.backendToken) {
-       return redirect("/login");
-     } 
     return (
     <div>
       <ProfilePage/>

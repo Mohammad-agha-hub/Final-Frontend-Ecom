@@ -4,6 +4,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata:Metadata={
+  title:"Create Coupon"
+}
+
 export default async function ManageCouponsPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.isAdmin !== true) {

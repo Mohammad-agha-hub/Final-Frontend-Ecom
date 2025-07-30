@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Product } from "@/components/utilities/types";
 import { useSession } from "next-auth/react";
+import { useSettingsStore } from "@/utils/shippingStore";
 
 type WishlistItem = Pick<
   Product,
@@ -22,7 +23,7 @@ const WishlistClient = ({
   const {data:session} = useSession()
   const router = useRouter();
   const [wishlist, setWishlist] = useState<WishlistItem[]>(initialWishlist);
-
+  const {currency} = useSettingsStore()
   const handleRemove = async (productId: string) => {
     try {
       const res = await fetch(
@@ -81,7 +82,7 @@ const WishlistClient = ({
                   <div className="flex items-center gap-2 justify-center">
                     {item.discount > 0 && (
                       <p className="text-gray-900 font-bold text-lg">
-                        Rs{" "}
+                        {currency}{" "}
                         {Math.round(
                           item.price - (item.price * item.discount) / 100
                         )}
@@ -92,7 +93,7 @@ const WishlistClient = ({
                         item.discount > 0 ? "line-through" : ""
                       }`}
                     >
-                      Rs {item.price}
+                      {currency} {item.price}
                     </p>
                   </div>
                   <div className="flex justify-center gap-2 mt-4">

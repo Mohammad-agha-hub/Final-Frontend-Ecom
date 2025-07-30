@@ -2,7 +2,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import StockManagement from "./StockManagement";
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
 
+export const metadata:Metadata={
+  title:"Manage Stocks"
+}
 export default async function StockPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.isAdmin !== true) {

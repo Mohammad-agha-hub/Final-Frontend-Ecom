@@ -5,17 +5,9 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 import OrderSummaryTop from "@/components/checkout/OrderSummaryTop";
 import React, { useState } from "react";
 
-interface SettingsProps {
-    settings:{
-        id:string;
-        currency:string;
-        shippingRate:number;
-        dhlCharge:number;
-        updatedAt:string
-    }
-}
 
-const Checkout = ({settings}:SettingsProps) => {
+
+const Checkout = () => {
     const [isInternational,setIsInternational] = useState(false)
   const [couponCode, setCouponCode] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -28,18 +20,17 @@ const Checkout = ({settings}:SettingsProps) => {
       <div className="lg:hidden">
         <OrderSummaryTop
           isInternational={isInternational}
-          settings={settings}
           onCouponApplied={handleCouponApplied}
         />
       </div>
       <CheckoutDetail
         isInternational={isInternational}
         setIsInternational={setIsInternational}
-        settings={settings}
+       
         couponCode={couponCode}
         discountAmount={discountAmount}
       />
-      <OrderSummary isInternational={isInternational} settings={settings} onCouponApplied={handleCouponApplied} />
+      <OrderSummary isInternational={isInternational} onCouponApplied={handleCouponApplied} />
     </div>
   );
 };

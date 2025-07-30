@@ -1,3 +1,4 @@
+"use client"
 import {
   Card,
   CardDescription,
@@ -5,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useSettingsStore } from "@/utils/shippingStore";
 
   type Metrics = {
     totalSales:number;
@@ -16,14 +18,14 @@ import {
   }
 
 export function SectionCards({metrics}:{metrics:Metrics}) {
-  
+  const {currency} = useSettingsStore()
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription className="pt-1 text-center">Total Revenue Of This Month</CardDescription>
           <CardTitle className="text-2xl text-center font-semibold tabular-nums @[250px]/card:text-4xl">
-           Rs. {metrics.totalSales.toLocaleString()}
+           {currency} {metrics.totalSales.toLocaleString()}
           </CardTitle>
         </CardHeader>
         
