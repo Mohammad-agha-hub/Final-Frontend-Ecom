@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
     if (!session || session.user.isAdmin !== true) {
-    return redirect("/");
+     redirect("/");
   }
 
   const res = await fetch(

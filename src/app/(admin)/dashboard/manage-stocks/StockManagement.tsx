@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useSettingsStore } from "@/utils/shippingStore";
+
 interface Variant {
   id: string;
   key: string;
@@ -42,8 +43,8 @@ const StockManagement: React.FC<Props> = ({
   combinations: initialData,
   backendToken,
 }) => {
-  const {data:session} = useSession()
-  const {currency} = useSettingsStore()
+  const { data: session } = useSession();
+  const { currency } = useSettingsStore();
   const [combinations, setCombinations] =
     useState<VariantCombination[]>(initialData);
   const [loading, setLoading] = useState(false);
@@ -92,7 +93,7 @@ const StockManagement: React.FC<Props> = ({
       );
       fetchCombinations();
       setRestockInputs((prev) => ({ ...prev, [id]: 0 }));
-      toast.success("Product restocked!")
+      toast.success("Product restocked!");
     } catch {
       toast.error("Failed to restock");
     }
@@ -117,7 +118,7 @@ const StockManagement: React.FC<Props> = ({
       );
       fetchCombinations();
       setUpdateInputs((prev) => ({ ...prev, [id]: 0 }));
-      toast.success("Stock updated!")
+      toast.success("Stock updated!");
     } catch {
       toast.error("Failed to update stock");
     }
@@ -144,12 +145,15 @@ const StockManagement: React.FC<Props> = ({
 
     return nameMatch && stockMatch;
   });
-  if(!session || session.user.isAdmin !== true){
+
+  if (!session || session.user.isAdmin !== true) {
     return (
       <div className="text-center text-destructive mt-10 text-lg font-semibold">
         Access denied.
       </div>
-    );}
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Filters */}
@@ -160,7 +164,6 @@ const StockManagement: React.FC<Props> = ({
           onChange={(e) => setSearch(e.target.value)}
           className="w-full md:w-1/2"
         />
-
         <div className="flex items-center gap-2">
           <Switch
             id="low-stock-switch"
@@ -201,9 +204,6 @@ const StockManagement: React.FC<Props> = ({
               </CardHeader>
               <CardContent className="space-y-6">
                 {combos.map((combo) => {
-                  const variantText = combo.variants
-                    .map((v) => `${v.variant.key}: ${v.variant.value}`)
-                    .join(", ");
                   const isLow = combo.stock < 5;
 
                   return (
@@ -212,7 +212,31 @@ const StockManagement: React.FC<Props> = ({
                       className="border-t pt-4 grid gap-4 md:grid-cols-2"
                     >
                       <div>
-                        <p className="font-medium">{variantText}</p>
+                        <div className="flex flex-wrap gap-3 items-center font-medium">
+                          {combo.variants.map(({ variant }) => (
+                            <div
+                              key={variant.id}
+                              className="flex items-center gap-2"
+                            >
+                              {variant.key.toLowerCase() === "color" ? (
+                                <>
+                                  <span className="text-sm">
+                                    {variant.key}:
+                                  </span>
+                                  <span
+                                    className="w-4 h-4 rounded-full border"
+                                    style={{ backgroundColor: variant.value }}
+                                    title={variant.value}
+                                  />
+                                </>
+                              ) : (
+                                <span className="text-sm">
+                                  {variant.key}: {variant.value}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Price: {currency} {combo.price} | Stock: {combo.stock}
                         </p>

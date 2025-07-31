@@ -11,15 +11,13 @@ export const metadata:Metadata={
 
 export default async function CategoryPage() {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.isAdmin !== true) {
-    return redirect("/");
-  }
+  
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`,
     {
       headers: {
-        Authorization: `Bearer ${session.user.backendToken}`,
+        Authorization: `Bearer ${session?.user.backendToken}`,
       },
       cache: "no-store",
     }
@@ -27,6 +25,9 @@ export default async function CategoryPage() {
 
   const data = await res.json();
   const categories = data?.success ? data.categories : [];
-
+ 
+  if (!session || session.user.isAdmin !== true) {
+    redirect("/");
+  }
   return <CategoryManagement initialCategories={categories} />;
 }
