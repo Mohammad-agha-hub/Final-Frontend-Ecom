@@ -1,55 +1,66 @@
+import Link from 'next/link';
 import React from 'react'
 
 const Footer = () => {
   return (
-     <footer className="text-gray-300 w-full max-w-screen px-5 md:px-6 lg:px-8 py-12 bg-gray-800 overflow-hidden">
+    <footer className="text-gray-300 w-full max-w-screen px-5 md:px-6 lg:px-8 py-12 bg-gray-800 overflow-hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-20 lg:grid-cols-5 gap-5">
-
         {/* Column 1 */}
         <div className="flex flex-col w gap-2 text-sm">
           <h2 className="text-lg font-semibold text-white">Qubit Kurv</h2>
-          <span className='text-white'>Hotline Free 24/3</span>
-          <span className="text-orange-600 text-lg font-semibold">+92 9102012</span>
-          <p className='w-full max-w-[10rem]'>124 S GEMSTONE SUITE A RIDGECREST</p>
-          <span >CA 93555</span>
-          <span >Email: info@gmail.com</span>
+          <span className="text-white">Hotline Free 24/3</span>
+          <span className="text-orange-600 text-lg font-semibold">
+            +92 9102012
+          </span>
+          <p className="w-full max-w-[10rem]">
+            124 S GEMSTONE SUITE A RIDGECREST
+          </p>
+          <span>CA 93555</span>
+          <span>Email: info@gmail.com</span>
         </div>
 
         {/* Column 2 */}
         <div className="flex flex-col gap-2 text-sm">
           <h2 className="text-lg font-semibold text-white">My Account</h2>
-          <span className='cursor-pointer'>Login</span>
-          <span className='cursor-pointer'>Register</span>
-          <span className='cursor-pointer'>Recover your password?</span>
+          <Link href={"/login"}>
+            <span className="cursor-pointer">Login</span>
+          </Link>
+          <Link href={"/login"}>
+            <span className="cursor-pointer">Register</span>
+          </Link>
         </div>
 
         {/* Column 3 */}
         <div className="flex flex-col gap-2 text-sm">
           <h2 className="text-lg font-semibold text-white">Pages</h2>
-          <span className='cursor-pointer'>Home</span>
-          <span className='cursor-pointer'>Collection</span>
-          <span className='cursor-pointer'>All Products</span>
-          <span className='cursor-pointer'>About Us</span>
-          <span className='cursor-pointer'>Contact Us</span>
+          <Link href={"/"}>
+            <span className="cursor-pointer">Home</span>
+          </Link>
+          <Link href={"/all-products"}>
+            <span className="cursor-pointer">All Products</span>
+          </Link>
         </div>
 
         {/* Column 4 */}
         <div className="flex flex-col gap-2 text-sm">
           <h2 className="text-lg font-semibold text-white">Our Policies</h2>
-          <span className='cursor-pointer'>Terms & Conditions</span>
-          <span className='cursor-pointer'>Privacy Policy</span>
-          <span className='cursor-pointer'>Shipping Policy</span>
-          <span className='cursor-pointer'>Cookies Policy</span>
-          <span className='cursor-pointer'>Return and Refund Policy</span>
+          <span className="cursor-pointer">Terms & Conditions</span>
+          <span className="cursor-pointer">Privacy Policy</span>
+          <span className="cursor-pointer">Shipping Policy</span>
+          <span className="cursor-pointer">Cookies Policy</span>
+          <span className="cursor-pointer">Return and Refund Policy</span>
         </div>
 
         {/* Column 5 */}
-        
-        <div className="flex flex-col gap-4 text-sm">
-          <h2 className="text-lg font-semibold text-white">Sign Up To Newsletter</h2>
-          <p>Join 60,000+ subscribers and get a new discount coupon every Saturday.</p>
 
-          {/* Email input with button inside */}
+       {/* <div className="flex flex-col gap-4 text-sm">
+          <h2 className="text-lg font-semibold text-white">
+            Sign Up To Newsletter
+          </h2>
+          <p>
+            Join 60,000+ subscribers and get a new discount coupon every
+            Saturday.
+          </p>
           <div className="relative w-full">
             <input
               type="text"
@@ -62,14 +73,14 @@ const Footer = () => {
           </div>
 
           <p className="text-xs mt-2">
-            By providing your email address, you agree to our Privacy Policy and Terms of Service.
+            By providing your email address, you agree to our Privacy Policy and
+            Terms of Service.
           </p>
         </div>
-        </div>
-
-      
+        */}
+      </div>
     </footer>
-  )
+  );
 }
 
 export default Footer
