@@ -33,17 +33,14 @@ const CustomizeProducts = ({ product, wished }: Props) => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`,
-        {
-          method: isWished ? "DELETE" : "POST",
-          headers: {
-            Authorization: `Bearer ${session?.user.backendToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ productId: product.id }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/wishlist`, {
+        method: isWished ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${session?.user.backendToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId: product.id }),
+      });
       if (!res.ok) toast.error(`Failed to update wishlist!`);
     } catch (error) {
       console.error(error);
@@ -68,12 +65,8 @@ const CustomizeProducts = ({ product, wished }: Props) => {
     product.variantCombinations?.forEach((combo) => {
       if (!combo || !Array.isArray(combo.variants)) return;
 
-      const colorVariant = combo.variants.find(
-        (v) => v?.variant?.key === "Color"
-      );
-      const sizeVariant = combo.variants.find(
-        (v) => v?.variant?.key === "Size"
-      );
+      const colorVariant = combo.variants.find((v) => v?.variant?.key === "Color");
+      const sizeVariant = combo.variants.find((v) => v?.variant?.key === "Size");
 
       if (!colorVariant || !sizeVariant) return;
 
@@ -163,7 +156,10 @@ const CustomizeProducts = ({ product, wished }: Props) => {
         </div>
         <div className="flex gap-3">
           {availableColors.map((color) => {
-            const isWhite = color.toLowerCase() === "white";
+            // Simple hex lightness check
+            const isLightColor =
+              /^#(?:f{2}|e{2}|d{2}){3,3}$/i.test(color) ||
+              color.toLowerCase() === "#ffffff";
             const isSelected = selectedColor === color;
             const stock = colorStockMap[color] || 0;
             const isCompatibleWithSize =
@@ -175,20 +171,20 @@ const CustomizeProducts = ({ product, wished }: Props) => {
                 key={color}
                 onClick={() => stock > 0 && handleColorSelect(color)}
                 className={`
-                  relative w-8 h-8 rounded-full cursor-pointer ring-2 transition
+                  relative w-8 h-8 rounded-full cursor-pointer transition
                   ${
                     isSelected
-                      ? "ring-orange-400 scale-110"
+                      ? "ring-orange-400 scale-110 ring-2"
                       : stock > 0
                       ? isCompatibleWithSize
-                        ? "ring-transparent hover:ring-orange-200"
-                        : "opacity-50"
-                      : "opacity-30 cursor-not-allowed"
+                        ? "  ring-transparent hover:ring-orange-200"
+                        : "opacity-100"
+                      : "opacity-50 cursor-not-allowed"
                   }
                 `}
                 style={{
                   backgroundColor: color.toLowerCase(),
-                  border: isWhite ? "1px solid orange" : "none",
+                  border: isLightColor ? "1px solid orange" : "none",
                 }}
               >
                 {stock <= 0 && (
