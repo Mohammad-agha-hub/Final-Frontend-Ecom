@@ -5,14 +5,6 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 
-const categoryImages: Record<string, string> = {
-  Women: "/cloth2a.png",
-  Men: "/cloth3a.png",
-  Kids: "/cloth4a.png",
-  Accessories: "/cloth5a.png",
-  Sale: "/cloth6a.png",
-  "Just In": "/cloth7a.png",
-};
 interface SubTag {
   id: string;
   name: string;
@@ -30,6 +22,7 @@ interface Tag {
 interface CategoryType {
   id: string;
   name: string;
+  image:string
 }
 
 const MegaMenu = ({
@@ -58,7 +51,7 @@ const MegaMenu = ({
           <div className="grid grid-cols-[280px_1fr] gap-30 items-start max-w-[1600px] w-full">
             <div className="relative rounded overflow-hidden">
               <Image
-                src={categoryImages[category.name] || "/placeholder.jpg"}
+                src={category.image || "/placeholder.jpg"}
                 alt={category.name}
                 width={200}
                 height={300}
