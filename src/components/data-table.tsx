@@ -63,7 +63,8 @@ export default function DataTable({ orders, users }: Props) {
     "customer"
   );
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const {currency} = useSettingsStore()
+  const { currency } = useSettingsStore();
+
   const getUser = (userId: string) => users.find((u) => u.id === userId);
 
   const getStatusBadge = (status: string) => {
@@ -165,17 +166,18 @@ export default function DataTable({ orders, users }: Props) {
                                 key={index}
                                 className="text-sm text-muted-foreground"
                               >
-                                <span className="font-medium">
-                                  {item.product?.name}
-                                </span>
-                                {` - ${item.size}, `}
-                                <span className="inline-flex items-center gap-1">
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="font-medium">
+                                    {item.product?.name}
+                                  </span>
+                                  <span>- {item.size}</span>
                                   <span
                                     className="w-3 h-3 rounded-full border border-gray-300"
                                     style={{ backgroundColor: item.color }}
+                                    title={item.color}
                                   />
+                                  <span>(x{item.quantity})</span>
                                 </span>
-                                {` (x${item.quantity})`}
                               </div>
                             ))}
                           </div>
@@ -279,11 +281,20 @@ export default function DataTable({ orders, users }: Props) {
               </div>
               <div>
                 <strong>Items:</strong>
-                <ul className="list-disc ml-4 mt-1">
+                <ul className="list-disc ml-4 mt-1 space-y-1">
                   {selectedOrder.items.map((item, idx) => (
                     <li key={idx}>
-                      {item.product?.name} - {item.size}, {item.color} (x
-                      {item.quantity})
+                      <span className="inline-flex items-center gap-2">
+                        <span>
+                          {item.product?.name} - {item.size}
+                        </span>
+                        <span
+                          className="w-3 h-3 rounded-full border border-gray-300"
+                          style={{ backgroundColor: item.color }}
+                          title={item.color}
+                        />
+                        <span>(x{item.quantity})</span>
+                      </span>
                     </li>
                   ))}
                 </ul>

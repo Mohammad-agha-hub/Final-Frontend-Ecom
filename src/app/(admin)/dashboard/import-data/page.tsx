@@ -118,7 +118,7 @@ export default function ProductImportPage() {
     );
   }
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
+    <div className="bg-white p-6 rounded-lg shadow w-full">
       <h2 className="text-xl font-bold mb-6">Import Products</h2>
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">

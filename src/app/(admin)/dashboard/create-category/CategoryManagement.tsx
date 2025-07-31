@@ -1,16 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
-import { FiEdit, FiTrash2, FiPlus, FiX, FiCheck } from "react-icons/fi";
+import React, {useState } from "react";
+import {
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
 import { toast } from "react-toastify";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 interface Category {
   id: string;
   name: string;
+  image?: string;
 }
 
 interface Props {
@@ -20,8 +28,10 @@ interface Props {
 export default function CategoryManagement({ initialCategories }: Props) {
   const [categories, setCategories] = useState(initialCategories);
   const [newCategory, setNewCategory] = useState("");
+  const [newImage, setNewImage] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [editImage, setEditImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
 
@@ -49,21 +59,25 @@ export default function CategoryManagement({ initialCategories }: Props) {
 
     setLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("name", newCategory);
+      if (newImage) formData.append("image", newImage);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${session?.user.backendToken}`,
           },
-          body: JSON.stringify({ name: newCategory }),
+          body: formData,
         }
       );
 
       if (!res.ok) throw new Error();
       toast.success("Created!");
       setNewCategory("");
+      setNewImage(null);
       fetchCategories();
     } catch {
       toast.error("Create failed");
@@ -77,21 +91,25 @@ export default function CategoryManagement({ initialCategories }: Props) {
 
     setLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("name", editValue);
+      if (editImage) formData.append("image", editImage);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/${id}`,
         {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${session?.user.backendToken}`,
           },
-          body: JSON.stringify({ name: editValue }),
+          body: formData,
         }
       );
 
       if (!res.ok) throw new Error();
       toast.success("Updated!");
       setEditingId(null);
+      setEditImage(null);
       fetchCategories();
     } catch {
       toast.error("Update failed");
@@ -146,14 +164,21 @@ export default function CategoryManagement({ initialCategories }: Props) {
       <CardContent>
         <form
           onSubmit={handleFormSubmit}
-          className="flex justify-center gap-6 mb-6"
+          className="flex justify-center gap-6 mb-6 items-center"
         >
           <Input
-            className="w-[70%] py-5"
+            className="w-[40%] py-5"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
             placeholder="New category name"
             disabled={loading}
+          />
+          <Input
+            type="file"
+            className="w-[35%] py-2"
+            onChange={(e) =>
+              setNewImage(e.target.files ? e.target.files[0] : null)
+            }
           />
           <Button
             type="submit"
@@ -173,10 +198,10 @@ export default function CategoryManagement({ initialCategories }: Props) {
             categories.map((category) => (
               <div
                 key={category.id}
-                className="p-3 flex justify-between items-center gap-2"
+                className="p-3 flex flex-col md:flex-row justify-between items-center gap-4"
               >
                 {editingId === category.id ? (
-                  <>
+                  <div className="w-full flex flex-col md:flex-row gap-3 items-center">
                     <Input
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
@@ -188,24 +213,46 @@ export default function CategoryManagement({ initialCategories }: Props) {
                         }
                       }}
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => saveEdit(category.id)}
-                    >
-                      <FiCheck className="text-green-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingId(null)}
-                    >
-                      <FiX className="text-red-600" />
-                    </Button>
-                  </>
+                    <Input
+                      type="file"
+                      className="w-full md:w-64"
+                      onChange={(e) =>
+                        setEditImage(e.target.files ? e.target.files[0] : null)
+                      }
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => saveEdit(category.id)}
+                      >
+                        <FiCheck className="text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingId(null)}
+                      >
+                        <FiX className="text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <>
-                    <span className="text-sm font-medium">{category.name}</span>
+                  <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      {category.image && (
+                        <Image
+                          src={category.image}
+                          alt={category.name}
+                          width={50}
+                          height={50}
+                          className="rounded-md object-cover"
+                        />
+                      )}
+                      <span className="text-sm font-medium">
+                        {category.name}
+                      </span>
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
@@ -225,7 +272,7 @@ export default function CategoryManagement({ initialCategories }: Props) {
                         <FiTrash2 className="text-red-600" />
                       </Button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))
