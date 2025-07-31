@@ -1,16 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  IconPlus,
-  IconEdit,
-  IconInnerShadowTop,
-  
-} from "@tabler/icons-react"
+import * as React from "react";
+import { IconPlus, IconEdit, IconInnerShadowTop } from "@tabler/icons-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavManagement } from "@/components/navbar-management"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/dashboard/nav-main";
+import { NavManagement } from "@/components/dashboard/navbar-management";
+import { NavUser } from "@/components/dashboard/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const data = {
   user: {
@@ -62,9 +57,9 @@ const data = {
       icon: IconEdit,
     },
     {
-      name:"Shipping Charges Management",
-      url:"/dashboard/manage-shipping",
-      icon:IconEdit,
+      name: "Shipping Charges Management",
+      url: "/dashboard/manage-shipping",
+      icon: IconEdit,
     },
     {
       name: "Stock Management",
@@ -77,15 +72,15 @@ const data = {
       icon: IconEdit,
     },
     {
-      name:"Order Management",
-      url:"/dashboard/manage-orders",
-      icon:IconEdit
+      name: "Order Management",
+      url: "/dashboard/manage-orders",
+      icon: IconEdit,
     },
     {
       name: "Import Data",
       url: "/dashboard/import-data",
       icon: IconEdit,
-    }
+    },
   ],
 };
 
@@ -109,11 +104,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavManagement items={data.management}/>
+        <NavManagement items={data.management} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

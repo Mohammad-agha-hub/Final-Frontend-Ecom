@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 
-import { SectionCards } from "@/components/section-cards";
-import DataTable from "@/components/data-table";
+import { SectionCards } from "@/components/dashboard/section-cards";
+import DataTable from "@/components/dashboard/data-table";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../..//auth.config";
 import { redirect } from "next/navigation";
@@ -9,8 +9,8 @@ import { redirect } from "next/navigation";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-    if (!session || session.user.isAdmin !== true) {
-     redirect("/");
+  if (!session || session.user.isAdmin !== true) {
+    redirect("/");
   }
 
   const res = await fetch(
@@ -40,28 +40,28 @@ export default async function DashboardPage() {
       cache: "no-store",
     }
   );
-  
+
   if (!dashboardRes.ok) {
     throw new Error("Failed to fetch dashboard data");
   }
   if (!res.ok) {
     throw new Error("Failed to fetch orders");
   }
-  if(!customerFetch.ok){
-    throw new Error("Failed to fetch customer data")
+  if (!customerFetch.ok) {
+    throw new Error("Failed to fetch customer data");
   }
   const result = await res.json();
-  const data = result.orders
+  const data = result.orders;
 
-  const customerData = await customerFetch.json()
+  const customerData = await customerFetch.json();
   const dashboardJson = await dashboardRes.json();
   const dashboardData = dashboardJson.data;
-  
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <SectionCards metrics={dashboardData}/>
+          <SectionCards metrics={dashboardData} />
           <DataTable orders={data} users={customerData.users} />
         </div>
       </div>
