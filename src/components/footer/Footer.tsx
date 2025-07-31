@@ -28,6 +28,9 @@ const Footer = () => {
           <Link href={"/login"}>
             <span className="cursor-pointer">Register</span>
           </Link>
+          <Link href={"/profile"}>
+            <span className="cursor-pointer">Update Profile</span>
+          </Link>
         </div>
 
         {/* Column 3 */}
@@ -38,6 +41,12 @@ const Footer = () => {
           </Link>
           <Link href={"/all-products"}>
             <span className="cursor-pointer">All Products</span>
+          </Link>
+          <Link href={"/wishlist"}>
+            <span className="cursor-pointer">Wishlist</span>
+          </Link>
+          <Link href={"/checkout"}>
+            <span className="cursor-pointer">Checkout</span>
           </Link>
         </div>
 
@@ -53,7 +62,7 @@ const Footer = () => {
 
         {/* Column 5 */}
 
-       {/* <div className="flex flex-col gap-4 text-sm">
+        {/* <div className="flex flex-col gap-4 text-sm">
           <h2 className="text-lg font-semibold text-white">
             Sign Up To Newsletter
           </h2>
