@@ -18,7 +18,9 @@ export default function SettingsInitializer({
   const setSettings = useSettingsStore((s) => s.setSettings);
 
   useEffect(() => {
-    setSettings(settings);
+    if (setSettings && settings) {
+      setSettings(settings);
+    }
   }, [settings, setSettings]);
 
   return <>{children}</>;

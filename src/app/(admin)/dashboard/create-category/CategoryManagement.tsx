@@ -79,7 +79,7 @@ export default function CategoryManagement({ initialCategories }: Props) {
       setNewCategory("");
       setNewImage(null);
       fetchCategories();
-    } catch {
+    } catch{
       toast.error("Create failed");
     } finally {
       setLoading(false);
