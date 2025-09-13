@@ -66,7 +66,11 @@ export default function ManageBanners() {
     const method = editingId ? "PUT" : "POST";
 
     await fetch(url, {
-      method,
+      method,      
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.user.backendToken}`,
+        },
       body: formData,
     });
 
