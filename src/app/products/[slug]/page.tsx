@@ -5,47 +5,42 @@ import ProductClient from "./ProductClient";
 import { Product } from "@/components/utilities/types";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params:Promise<{slug:string}>
 }
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
-    if (!res.ok) throw new Error("Failed to fetch products");
-    const data = await res.json();
+// export async function generateStaticParams() {
+//   try {
+//     const res = await fetch(
+//       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+//       {
+//         next: { revalidate: 60 },
+//       }
+//     );
+//     if (!res.ok) throw new Error("Failed to fetch products");
+//     const data = await res.json();
 
-    return data.products.map((product: { slug: string }) => ({
-      slug: product.slug,
-    }));
-  } catch (error) {
-    console.error("Error in generateStaticParams:", error);
-    return [];
-  }
-}
+//     return data.products.map((product: { slug: string }) => ({
+//       slug: product.slug,
+//     }));
+//   } catch (error) {
+//     console.error("Error in generateStaticParams:", error);
+//     return [];
+//   }
+// }
 
 export async function generateMetadata({params}:Props): Promise<Metadata> {
   const {slug} = await params
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/product/${slug}`,
-    { next: { revalidate: 60 } }
+    { cache:'no-store'}
   );
   const data = await res.json();
   const product = data.product;
   return {
     title: product.name,
     description:product.description,
-    openGraph:{
-      images:[
-        {
-          url:product.images.url||""
-        }
-      ]
-    }
   };
 }
 
@@ -55,7 +50,7 @@ async function fetchProduct(slug: string): Promise<Product | null> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/product/${slug}`,
-      { next: { revalidate: 60 } }
+      { cache: 'no-store'} 
     );
 
     if (!res.ok) throw new Error("Failed to fetch product");
