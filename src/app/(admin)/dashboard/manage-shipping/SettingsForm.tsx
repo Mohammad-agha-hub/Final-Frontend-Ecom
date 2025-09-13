@@ -8,11 +8,10 @@ import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 
 interface Settings {
-  id: string;
   currency: string;
   shippingRate: number;
   dhlCharge: number;
-  updatedAt: string;
+  
 }
 
 export default function SettingsForm({
@@ -42,7 +41,7 @@ export default function SettingsForm({
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.user.backendToken}`, // Optional: auth
+            Authorization: `Bearer ${session?.user.backendToken}`,
           },
           body: JSON.stringify({
             currency: form.currency,
