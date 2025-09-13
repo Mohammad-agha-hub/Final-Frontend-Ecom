@@ -68,7 +68,6 @@ export default function ManageBanners() {
     await fetch(url, {
       method,      
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${session?.user.backendToken}`,
         },
       body: formData,
