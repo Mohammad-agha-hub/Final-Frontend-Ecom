@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import { ShoppingBag, X } from "lucide-react";
+import { ShoppingBag, X, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { useCartStore } from "@/utils/CartStore";
 import { useRouter } from "next/navigation";
@@ -18,16 +18,19 @@ export default function CartSidebar() {
   const { data: session } = useSession();
   const token = session?.user?.backendToken;
 
-  
   const {
     items,
     fetchCart,
-    updateItem,
-    removeItem,
-    syncCart,
+    updateItemLocally,
+    removeItemLocally,
+    // removeItem,
+    syncCartToBackend,
     loading,
+    hasLocalChanges,
+    resetLocalChanges,
   } = useCartStore();
-  const {currency} = useSettingsStore()
+
+  const { currency } = useSettingsStore();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const { totalPrice, itemCount } = useMemo(() => {
@@ -47,7 +50,6 @@ export default function CartSidebar() {
 
   useEffect(() => {
     if (token) fetchCart(token);
-    
   }, [token, fetchCart]);
 
   useEffect(() => {
@@ -67,35 +69,52 @@ export default function CartSidebar() {
     }
   }, [isOpen, closeSidebar]);
 
-  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
-    if (!token || newQuantity < 1) return;
-    try {
-      await updateItem(itemId, newQuantity, token);
-      toast.success("Quantity updated");
-    } catch {
-      toast.error("Failed to update quantity");
-    }
+  // Local quantity change - no backend call
+  const handleQuantityChange = (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    updateItemLocally(itemId, newQuantity);
   };
 
-  const handleRemoveItem = async (itemId: string) => {
-    if (!token) return;
-    try {
-      await removeItem(itemId, token);
-      toast.success("Item removed from cart");
-    } catch {
-      toast.error("Failed to remove item");
-    }
+  // Local removal - no backend call
+  const handleRemoveItemLocally = (itemId: string) => {
+    removeItemLocally(itemId);
+    toast.success("Item removed from cart");
   };
 
+  // // Immediate backend removal (for remove button)
+  // const handleRemoveItemPermanently = async (itemId: string) => {
+  //   if (!token) return;
+  //   try {
+  //     await removeItem(itemId, token);
+  //     toast.success("Item removed from cart");
+  //   } catch {
+  //     toast.error("Failed to remove item");
+  //   }
+  // };
+
+  // Reset local changes
+  const handleResetChanges = () => {
+    resetLocalChanges();
+    toast.success("Changes reset");
+  };
+
+  // Sync and checkout
   const handleCheckout = async () => {
     if (items.length === 0) return;
+
     setIsSyncing(true);
     try {
-      if (token) await syncCart(token);
+      if (token && hasLocalChanges) {
+        // Sync local changes to backend first
+        await syncCartToBackend(token);
+        toast.success("Cart updated successfully");
+      }
+
       closeSidebar();
       router.push("/checkout");
-    } catch {
-      toast.error("Failed to proceed to checkout");
+    } catch (error) {
+      toast.error("Failed to update cart. Please try again.");
+      console.error("Checkout sync error:", error);
     } finally {
       setIsSyncing(false);
     }
@@ -122,11 +141,35 @@ export default function CartSidebar() {
             <span className="text-lg font-medium">
               {itemCount} {itemCount === 1 ? "Item" : "Items"}
             </span>
+            {hasLocalChanges && (
+              <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Unsaved
+              </span>
+            )}
           </div>
           <button onClick={closeSidebar} aria-label="Close cart">
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Unsaved changes notification */}
+        {hasLocalChanges && (
+          <div className="px-4 py-2 bg-orange-50 border-b border-orange-200">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-orange-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                You have unsaved changes
+              </span>
+              <button
+                onClick={handleResetChanges}
+                className="text-orange-600 hover:text-orange-800 underline"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="p-4 flex-1 overflow-y-auto">
           {items.length === 0 ? (
@@ -148,14 +191,12 @@ export default function CartSidebar() {
           ) : (
             <ul className="divide-y">
               {items.map((item) => {
-                {console.log(item)}
                 let color = item.color || null;
                 let size = item.size || null;
                 let price = item.product.price;
                 const image = item.product.image;
-               
-
-                const stock = item.variant?.stock??0;
+                const stock = item.variant?.stock ?? 0;
+                const hasLocalChange = item.quantity !== item.originalQuantity;
 
                 if (item.variant) {
                   const foundColor = item.variant.variants.find(
@@ -190,6 +231,9 @@ export default function CartSidebar() {
                         <div className="flex justify-between">
                           <h3 className="font-medium line-clamp-2">
                             {item.product.name}
+                            {hasLocalChange && (
+                              <span className="inline-block w-2 h-2 bg-orange-500 rounded-full ml-2"></span>
+                            )}
                           </h3>
                           <p className="font-semibold whitespace-nowrap ml-2">
                             {currency} {displayPrice.toLocaleString()}
@@ -219,7 +263,13 @@ export default function CartSidebar() {
                           </div>
                         )}
                         <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center border rounded-md overflow-hidden">
+                          <div
+                            className={`flex items-center border rounded-md overflow-hidden ${
+                              hasLocalChange
+                                ? "border-orange-300 bg-orange-50"
+                                : ""
+                            }`}
+                          >
                             <button
                               onClick={() =>
                                 handleQuantityChange(item.id, item.quantity - 1)
@@ -232,6 +282,11 @@ export default function CartSidebar() {
                             </button>
                             <span className="px-3 text-center min-w-[2rem]">
                               {item.quantity}
+                              {hasLocalChange && (
+                                <span className="text-xs text-orange-600 block leading-none">
+                                  (was {item.originalQuantity})
+                                </span>
+                              )}
                             </span>
                             <button
                               onClick={() =>
@@ -244,13 +299,16 @@ export default function CartSidebar() {
                               +
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={loading}
-                            className="text-sm text-red-600 hover:underline disabled:opacity-50"
-                          >
-                            Remove
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRemoveItemLocally(item.id)}
+                              disabled={loading}
+                              className="text-sm text-orange-600 hover:underline disabled:opacity-50"
+                              title="Remove temporarily (will sync on checkout)"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -269,6 +327,14 @@ export default function CartSidebar() {
                 {currency} {totalPrice.toLocaleString()}
               </span>
             </div>
+
+            {hasLocalChanges && (
+              <p className="text-xs text-orange-600 mb-3 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Changes will be saved when you checkout
+              </p>
+            )}
+
             <button
               onClick={handleCheckout}
               disabled={loading || isSyncing}
@@ -277,13 +343,17 @@ export default function CartSidebar() {
               {isSyncing ? (
                 <>
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  Processing...
+                  {hasLocalChanges ? "Saving & Processing..." : "Processing..."}
                 </>
               ) : (
                 <>
-                  <span>Checkout</span>
+                  <span>
+                    {hasLocalChanges ? "Save & Checkout" : "Checkout"}
+                  </span>
                   <span>•</span>
-                  <span>{currency} {totalPrice.toLocaleString()}</span>
+                  <span>
+                    {currency} {totalPrice.toLocaleString()}
+                  </span>
                 </>
               )}
             </button>

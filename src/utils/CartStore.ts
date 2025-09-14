@@ -50,6 +50,7 @@ type CartItem = {
   id: string;
   productId: string;
   quantity: number;
+  originalQuantity:number,
   combinationId: string | null;
   size: string | null;
   color: string | null;
@@ -62,6 +63,7 @@ type CartState = {
   items: CartItem[];
   loading: boolean;
   error: string | null;
+  hasLocalChanges:boolean;
   fetchCart: (token: string) => Promise<void>;
   addToCart: (
     product: ProductCartItem,
@@ -71,20 +73,25 @@ type CartState = {
     color: string | null,
     token: string
   ) => Promise<void>;
-  updateItem: (
-    itemId: string,
-    quantity: number,
-    token: string
-  ) => Promise<void>;
+  // updateItem: (
+  //   itemId: string,
+  //   quantity: number,
+  //   token: string
+  // ) => Promise<void>;
+  updateItemLocally:(itemId:string,quantity:number)=>void;
+  removeItemLocally:(itemId:string)=>void;
+  syncCartToBackend:(token:string)=>Promise<void>;
   removeItem: (itemId: string, token: string) => Promise<void>;
   syncCart: (token: string) => Promise<void>;
   clearCart: () => void;
+  resetLocalChanges:()=>void;
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   loading: false,
   error: null,
+  hasLocalChanges:false,
 
   fetchCart: async (token) => {
     set({ loading: true, error: null });
@@ -103,6 +110,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         id: item.id,
         productId: item.productId,
         quantity: item.quantity,
+        originalQuantity:item.quantity,
         combinationId: item.combinationId,
         size: item.size || null,
         color: item.color || null,
@@ -127,7 +135,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         }),
       })) || [];
 
-      set({ items });
+      set({ items,hasLocalChanges:false });
     } catch (error) {
       console.error("Fetch cart error:", error);
       set({
@@ -171,35 +179,90 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  updateItem: async (itemId, quantity, token) => {
-    set({ loading: true, error: null });
+  // updateItem: async (itemId, quantity, token) => {
+  //   set({ loading: true, error: null });
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart/${itemId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quantity }),
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart/${itemId}`,
+  //       {
+  //         method: "PUT",
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ quantity }),
+  //       }
+  //     );
+
+  //     if (!response.ok) throw new Error("Failed to update cart item");
+
+  //     await get().fetchCart(token);
+  //   } catch (error) {
+  //     console.error("Update item error:", error);
+  //     set({
+  //       error: error instanceof Error ? error.message : "Failed to update item",
+  //     });
+  //   } finally {
+  //     set({ loading: false });
+  //   }
+  // },
+  updateItemLocally:(itemId,quantity)=>{
+    if(quantity<1) return;
+    set((state)=>({
+      items:state.items.map((item)=>item.id===itemId?{...item,quantity}:item),
+      hasLocalChanges:true,
+    }
+  ))
+  },
+  removeItemLocally:(itemId)=>{
+    set((state)=>({
+      items:state.items.filter((item)=>item.id!==itemId),
+      hasLocalChanges:true
+    }))
+  },
+  syncCartToBackend:async(token)=>{
+    const {items} = get();
+    set({loading:true,error:null})
+    try{
+      const updates = [];
+      // const removals = [];
+      for(const item of items){
+        if(item.quantity !== item.originalQuantity){
+          updates.push({
+            itemId:item.id,
+            quantity:item.quantity
+          })
         }
-      );
-
-      if (!response.ok) throw new Error("Failed to update cart item");
-
-      await get().fetchCart(token);
-    } catch (error) {
-      console.error("Update item error:", error);
+      }
+      const updatePromises = updates.map(({itemId,quantity})=>
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart${itemId}`,{
+        method:'PUT',
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({quantity})
+      }))
+      const results = await Promise.allSettled(updatePromises)
+      const failedUpdates = results.filter(result=>result.status==='rejected');
+      if(failedUpdates.length>0){
+        throw new Error(`Failed to update ${failedUpdates.length} items`)
+      }
+      await get().fetchCart(token)
+    }
+    catch(error){
+      console.error("sync cart error",error)
       set({
-        error: error instanceof Error ? error.message : "Failed to update item",
-      });
-    } finally {
-      set({ loading: false });
+        error:error instanceof Error ? error.message :"Failed to sync cart"
+      })
+      throw error;
+    }
+    finally{
+      set({loading:false})
     }
   },
-
+  
   removeItem: async (itemId, token) => {
     set({ loading: true, error: null });
 
@@ -225,6 +288,16 @@ export const useCartStore = create<CartState>((set, get) => ({
     } finally {
       set({ loading: false });
     }
+  },
+
+  resetLocalChanges:()=>{
+    set((state)=>({
+      items:state.items.map((item)=>({
+        ...item,
+        quantity:item.originalQuantity,
+      })),
+      hasLocalChanges:false
+    }))
   },
 
   syncCart: async (token) => {
