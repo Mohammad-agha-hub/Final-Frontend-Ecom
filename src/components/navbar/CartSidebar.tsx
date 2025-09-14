@@ -29,6 +29,15 @@ export default function CartSidebar() {
   } = useCartStore();
   const {currency} = useSettingsStore()
   const [isSyncing, setIsSyncing] = useState(false);
+  const [localQuantities,setLocalQuantities] = useState<{[itemId:string]:number}>({})
+
+  useEffect(()=>{
+    const newLocalQuantities:{[itemId:string]:number} = {};
+    items.forEach(item=>{
+      newLocalQuantities[item.id] = item.quantity
+    })
+    setLocalQuantities(newLocalQuantities)
+  },[items])
 
   const { totalPrice, itemCount } = useMemo(() => {
     return items.reduce(
@@ -43,7 +52,7 @@ export default function CartSidebar() {
       },
       { totalPrice: 0, itemCount: 0 }
     );
-  }, [items]);
+  }, [items,localQuantities]);
 
   useEffect(() => {
     if (token) fetchCart(token);
@@ -69,12 +78,15 @@ export default function CartSidebar() {
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (!token || newQuantity < 1) return;
-    try {
-      await updateItem(itemId, newQuantity, token);
-      toast.success("Quantity updated");
-    } catch {
-      toast.error("Failed to update quantity");
-    }
+    const item = items.find(i=>i.id===itemId)
+    if(!item) return;
+    const maxStock = item.variant?.stock || 0;
+    if(maxStock>0 && newQuantity > maxStock) return;
+
+    setLocalQuantities(prev=>({
+      ...prev,
+      [itemId]:newQuantity
+    }))
   };
 
   const handleRemoveItem = async (itemId: string) => {
@@ -91,6 +103,12 @@ export default function CartSidebar() {
     if (items.length === 0) return;
     setIsSyncing(true);
     try {
+      for(const item of items){
+        const localQty = localQuantities[item.id]
+        if(localQty && localQty!==item.quantity && token){
+          await updateItem(item.id,localQty,token)
+        }
+      }
       if (token) await syncCart(token);
       closeSidebar();
       router.push("/checkout");
@@ -154,7 +172,7 @@ export default function CartSidebar() {
                 let price = item.product.price;
                 const image = item.product.image;
                
-
+                const currentQuantity = localQuantities[item.id] ?? item.quantity
                 const stock = item.variant?.stock??0;
 
                 if (item.variant) {
@@ -222,7 +240,7 @@ export default function CartSidebar() {
                           <div className="flex items-center border rounded-md overflow-hidden">
                             <button
                               onClick={() =>
-                                handleQuantityChange(item.id, item.quantity - 1)
+                                handleQuantityChange(item.id, currentQuantity - 1)
                               }
                               disabled={item.quantity <= 1 || loading}
                               className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
@@ -235,7 +253,7 @@ export default function CartSidebar() {
                             </span>
                             <button
                               onClick={() =>
-                                handleQuantityChange(item.id, item.quantity + 1)
+                                handleQuantityChange(item.id, currentQuantity + 1)
                               }
                               disabled={item.quantity >= stock || loading}
                               className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
