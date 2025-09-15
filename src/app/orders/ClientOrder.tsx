@@ -135,7 +135,7 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                         </p>
 
                         <p className="text-sm text-gray-600">
-                          Price: {currency} {item.price.toLocaleString()}
+                          Price: {currency} {item.price.toLocaleString("en-PK")}
                         </p>
                       </div>
                     </div>
@@ -165,18 +165,22 @@ export default function OrderClient({ orders }: { orders: OrderItem[] }) {
                       <div className="flex justify-between">
                         <span>Shipping Charges</span>
                         <span>
-                          {currency} {(order.shippingAmount ?? 0).toLocaleString()}
+                          {currency}{" "}
+                          {(order.shippingAmount ?? 0).toLocaleString("en-PK")}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Discount</span>
                         <span>
-                          - {currency} {order.discountAmount.toLocaleString()}
+                          {currency}{" "}
+                          {order.discountAmount.toLocaleString("en-PK")}
                         </span>
                       </div>
                       <div className="flex justify-between font-bold text-gray-900 mt-2">
                         <span>Total</span>
-                        <span>{currency} {order.totalAmount.toLocaleString()}</span>
+                        <span>
+                          {currency} {order.totalAmount.toLocaleString("en-PK")}
+                        </span>
                       </div>
                       <div className="mt-2">
                         <span className="text-gray-600">Payment: </span>

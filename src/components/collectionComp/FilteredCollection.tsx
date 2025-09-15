@@ -177,15 +177,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="flex justify-center gap-1">
           <span className="text-[10px] sm:text-sm text-gray-900">
             {currency}{" "}
-            {product.price -
-              Math.round((product.price * product.discount) / 100)}
+            {(
+              product.price -
+              Math.round((product.price * product.discount) / 100)
+            ).toLocaleString("en-PK")}
           </span>
           {product.discount > 0 && (
             <>
               <span className="text-[10px] sm:text-sm text-gray-600 line-through">
-                {currency} {product.price}
+                {currency} {product.price.toLocaleString("en-PK")}
               </span>
-              <span className="text-[10px] sm:text-sm text-red-400">{product.discount}%</span>
+              <span className="text-[10px] sm:text-sm text-red-400">
+                {product.discount}%
+              </span>
             </>
           )}
         </div>

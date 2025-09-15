@@ -144,8 +144,7 @@ export default function Navbar({products}:{products:Product[]}) {
                 size={22}
                 className="cursor-pointer"
               />
-              <div className="bg-black h-3 w-3 absolute -top-1 flex items-center pt-[1px] justify-center text-xs font-semibold -right-1 rounded-full text-white">
-                {items.reduce((count, item) => count + item.quantity, 0)}
+              <div className="bg-orange-500 h-3 w-3 absolute -top-1 flex items-center pt-[1px] justify-center text-xs font-semibold -right-1 rounded-full text-white">
               </div>
             </div>
           </div>
@@ -186,6 +185,7 @@ export default function Navbar({products}:{products:Product[]}) {
                     <Link
                       href={`/products/${product.slug}`}
                       key={index}
+                      onClick={()=>setIsSearchOpen(false)}
                       className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100/60 cursor-pointer transition-colors"
                     >
                       <Image
