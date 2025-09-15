@@ -238,7 +238,9 @@ const StockManagement: React.FC<Props> = ({
                           ))}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Price: {currency} {combo.price} | Stock: {combo.stock}
+                          Price: {currency}{" "}
+                          {combo.price.toLocaleString("en-PK")} | Stock:{" "}
+                          {combo.stock}
                         </p>
                         {isLow && (
                           <p className="text-sm text-red-500 font-semibold">

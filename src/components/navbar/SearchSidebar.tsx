@@ -99,7 +99,7 @@ const SearchSidebar =({products}:{products:Product[]}) => {
                           {currency}{" "}
                           {Math.round(
                             +item.price * (1 - (item.discount || 0) / 100)
-                          )}
+                          ).toLocaleString("en-PK")}
                         </span>
                       )}
                       <p
@@ -109,7 +109,7 @@ const SearchSidebar =({products}:{products:Product[]}) => {
                             : `text-xs text-gray-500 `
                         }
                       >
-                        {currency} {item.price}
+                        {currency} {item.price.toLocaleString("en-PK")}
                       </p>
                       {item.discount > 0 && (
                         <span className="text-red-500 font-medium text-[0.8rem]">

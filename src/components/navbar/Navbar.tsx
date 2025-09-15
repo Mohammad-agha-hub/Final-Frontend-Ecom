@@ -144,7 +144,8 @@ export default function Navbar({products}:{products:Product[]}) {
                 size={22}
                 className="cursor-pointer"
               />
-              <div className="bg-orange-500 h-3 w-3 absolute -top-1 flex items-center pt-[1px] justify-center text-xs font-semibold -right-1 rounded-full text-white">
+              <div className="bg-black h-3 w-3 absolute -top-1 flex items-center pt-[1px] justify-center text-xs font-semibold -right-1 rounded-full text-white">
+                {items.reduce((count, item) => count + item.quantity, 0)}
               </div>
             </div>
           </div>
@@ -185,7 +186,7 @@ export default function Navbar({products}:{products:Product[]}) {
                     <Link
                       href={`/products/${product.slug}`}
                       key={index}
-                      onClick={()=>setIsSearchOpen(false)}
+                      onClick={() => setIsSearchOpen(false)}
                       className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100/60 cursor-pointer transition-colors"
                     >
                       <Image
@@ -207,7 +208,7 @@ export default function Navbar({products}:{products:Product[]}) {
                               {Math.round(
                                 +product.price *
                                   (1 - (product.discount || 0) / 100)
-                              )}
+                              ).toLocaleString("en-PK")}
                             </span>
                           )}
                           <span
@@ -215,7 +216,7 @@ export default function Navbar({products}:{products:Product[]}) {
                               product.discount > 0 ? "line-through" : ""
                             }`}
                           >
-                            {currency} {product.price}
+                            {currency} {product.price.toLocaleString("en-PK")}
                           </span>
                           {product.discount > 0 && (
                             <span className="text-red-500 font-medium text-[0.8rem]">

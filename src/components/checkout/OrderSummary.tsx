@@ -117,7 +117,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
                 {Math.round(
                   item.product.price -
                     item.product.price * ((item.product.discount ?? 0) / 100)
-                ).toLocaleString()}
+                ).toLocaleString("en-PK")}
               </span>
             </div>
             <div className="text-right hidden xl:block font-semibold">
@@ -125,7 +125,7 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
               {Math.round(
                 item.product.price -
                   item.product.price * ((item.product.discount ?? 0) / 100)
-              ).toLocaleString()}
+              ).toLocaleString("en-PK")}
             </div>
           </div>
         </div>
@@ -155,7 +155,9 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
       <div className="text-sm text-gray-800 space-y-3">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span className="font-medium">{`${currency} ${subtotal}`}</span>
+          <span className="font-medium">{`${currency} ${subtotal.toLocaleString(
+            "en-PK"
+          )}`}</span>
         </div>
         <div className="flex justify-between">
           <span>Items</span>
@@ -163,17 +165,21 @@ const OrderSummary:React.FC<OrderSummaryProps> = ({onCouponApplied,isInternation
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>{`${currency} ${shippingCharges}`}</span>
+          <span>{`${currency} ${shippingCharges.toLocaleString(
+            "en-PK"
+          )}`}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount</span>
-            <span>{`${currency} ${discountAmount}`}</span>
+            <span>{`${currency} ${discountAmount.toLocaleString(
+              "en-PK"
+            )}`}</span>
           </div>
         )}
         <div className="flex justify-between text-lg font-semibold border-t pt-3">
           <span>Total</span>
-          <span>{`${currency} ${total}`}</span>
+          <span>{`${currency} ${total.toLocaleString("en-PK")}`}</span>
         </div>
       </div>
     </div>

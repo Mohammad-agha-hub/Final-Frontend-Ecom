@@ -85,7 +85,7 @@ const WishlistClient = ({
                         {currency}{" "}
                         {Math.round(
                           item.price - (item.price * item.discount) / 100
-                        )}
+                        ).toLocaleString("en-PK")}
                       </p>
                     )}
                     <p
@@ -93,7 +93,7 @@ const WishlistClient = ({
                         item.discount > 0 ? "line-through" : ""
                       }`}
                     >
-                      {currency} {item.price}
+                      {currency} {item.price.toLocaleString("en-PK")}
                     </p>
                   </div>
                   <div className="flex justify-center gap-2 mt-4">

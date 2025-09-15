@@ -193,7 +193,7 @@ export default function ProductView({
                 <p className="text-sm text-gray-700">
                   Price:{" "}
                   <span className="font-medium">
-                    {currency} {product.price}
+                    {currency} {product.price.toLocaleString("en-PK")}
                   </span>
                 </p>
                 <p className="text-sm text-gray-700">

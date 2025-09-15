@@ -152,7 +152,7 @@ export default function DataTable({ orders, users }: Props) {
                           {getStatusBadge(order.status)}
                         </td>
                         <td className="px-4 py-2 font-semibold">
-                          {currency} {order.totalAmount}
+                          {currency} {order.totalAmount.toLocaleString("en-PK")}
                         </td>
                         <td className="px-4 py-2">
                           {new Date(order.createdAt).toLocaleDateString(
@@ -277,7 +277,8 @@ export default function DataTable({ orders, users }: Props) {
                 <strong>Status:</strong> {selectedOrder.status}
               </div>
               <div>
-                <strong>Total:</strong> {currency} {selectedOrder.totalAmount}
+                <strong>Total:</strong> {currency}{" "}
+                {selectedOrder.totalAmount.toLocaleString("en-PK")}
               </div>
               <div>
                 <strong>Items:</strong>

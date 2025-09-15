@@ -238,7 +238,9 @@ export default function OrderManagement({
                     <TableCell>
                       {order.paymentMethod === "cod" ? "COD" : "Paypal"}
                     </TableCell>
-                    <TableCell>{currency} {order.totalAmount}</TableCell>
+                    <TableCell>
+                      {currency} {order.totalAmount.toLocaleString("en-PK")}
+                    </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>
                       <div className="relative">
@@ -395,7 +397,10 @@ export default function OrderManagement({
                                 </p>
                                 <p>
                                   <span className="font-semibold">Total: </span>
-                                  {currency} {selectedOrder.totalAmount}
+                                  {currency}{" "}
+                                  {selectedOrder.totalAmount.toLocaleString(
+                                    "en-PK"
+                                  )}
                                 </p>
                               </div>
                               <div>
@@ -442,7 +447,7 @@ export default function OrderManagement({
                                           <span className="font-semibold">
                                             Price:{" "}
                                           </span>
-                                          {item.price}
+                                          {item.price.toLocaleString("en-PK")}
                                         </span>
                                       </li>
                                     ))}
