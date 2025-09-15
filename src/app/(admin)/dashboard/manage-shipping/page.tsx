@@ -1,10 +1,12 @@
-// app/(admin)/settings/page.tsx
 import SettingsForm from "./SettingsForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Manage Settings",
 };
+
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
 
 const defaultSettings = {
   currency: "IND",

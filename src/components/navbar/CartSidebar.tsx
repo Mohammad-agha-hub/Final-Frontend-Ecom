@@ -17,27 +17,21 @@ export default function CartSidebar() {
   const router = useRouter();
   const { data: session } = useSession();
   const token = session?.user?.backendToken;
-
-  
-  const {
-    items,
-    fetchCart,
-    updateItem,
-    removeItem,
-    syncCart,
-    loading,
-  } = useCartStore();
-  const {currency} = useSettingsStore()
+  const { items, fetchCart, updateItem, removeItem, syncCart, loading } =
+    useCartStore();
+  const { currency } = useSettingsStore();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [localQuantities,setLocalQuantities] = useState<{[itemId:string]:number}>({})
+  const [localQuantities, setLocalQuantities] = useState<{
+    [itemId: string]: number;
+  }>({});
 
-  useEffect(()=>{
-    const newLocalQuantities:{[itemId:string]:number} = {};
-    items.forEach(item=>{
-      newLocalQuantities[item.id] = item.quantity
-    })
-    setLocalQuantities(newLocalQuantities)
-  },[items])
+  useEffect(() => {
+    const newLocalQuantities: { [itemId: string]: number } = {};
+    items.forEach((item) => {
+      newLocalQuantities[item.id] = item.quantity;
+    });
+    setLocalQuantities(newLocalQuantities);
+  }, [items]);
 
   const { totalPrice, itemCount } = useMemo(() => {
     return items.reduce(
@@ -45,18 +39,18 @@ export default function CartSidebar() {
         const basePrice = item.variant?.price ?? item.product.price;
         const discount = item.product.discount || 0;
         const displayPrice = Math.round(basePrice * (1 - discount / 100));
+        const quantity = localQuantities[item.id] ?? item.quantity;
         return {
-          totalPrice: acc.totalPrice + displayPrice * item.quantity,
-          itemCount: acc.itemCount + item.quantity,
+          totalPrice: acc.totalPrice + displayPrice * quantity,
+          itemCount: acc.itemCount + quantity,
         };
       },
       { totalPrice: 0, itemCount: 0 }
     );
-  }, [items,localQuantities]);
+  }, [items, localQuantities]);
 
   useEffect(() => {
     if (token) fetchCart(token);
-    
   }, [token, fetchCart]);
 
   useEffect(() => {
@@ -78,15 +72,15 @@ export default function CartSidebar() {
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (!token || newQuantity < 1) return;
-    const item = items.find(i=>i.id===itemId)
-    if(!item) return;
-    const maxStock = item.variant?.stock || 0;
-    if(maxStock>0 && newQuantity > maxStock) return;
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    const maxStock = item.variant?.stock || item.stock || 0;
+    if (maxStock > 0 && newQuantity > maxStock) return;
 
-    setLocalQuantities(prev=>({
+    setLocalQuantities((prev) => ({
       ...prev,
-      [itemId]:newQuantity
-    }))
+      [itemId]: newQuantity,
+    }));
   };
 
   const handleRemoveItem = async (itemId: string) => {
@@ -103,10 +97,10 @@ export default function CartSidebar() {
     if (items.length === 0) return;
     setIsSyncing(true);
     try {
-      for(const item of items){
-        const localQty = localQuantities[item.id]
-        if(localQty && localQty!==item.quantity && token){
-          await updateItem(item.id,localQty,token)
+      for (const item of items) {
+        const localQty = localQuantities[item.id];
+        if (localQty && localQty !== item.quantity && token) {
+          await updateItem(item.id, localQty, token);
         }
       }
       if (token) await syncCart(token);
@@ -118,7 +112,8 @@ export default function CartSidebar() {
       setIsSyncing(false);
     }
   };
-
+  console.log("items", items);
+  console.log("quantity", localQuantities);
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -166,14 +161,17 @@ export default function CartSidebar() {
           ) : (
             <ul className="divide-y">
               {items.map((item) => {
-                {console.log(item)}
+                {
+                  console.log(item);
+                }
                 let color = item.color || null;
                 let size = item.size || null;
                 let price = item.product.price;
                 const image = item.product.image;
-               
-                const currentQuantity = localQuantities[item.id] ?? item.quantity
-                const stock = item.variant?.stock??0;
+                console.log("variant stock", item?.variant?.stock);
+                const currentQuantity =
+                  localQuantities[item.id] ?? item.quantity;
+                const stock = item.variant?.stock || 0;
 
                 if (item.variant) {
                   const foundColor = item.variant.variants.find(
@@ -240,22 +238,28 @@ export default function CartSidebar() {
                           <div className="flex items-center border rounded-md overflow-hidden">
                             <button
                               onClick={() =>
-                                handleQuantityChange(item.id, currentQuantity - 1)
+                                handleQuantityChange(
+                                  item.id,
+                                  currentQuantity - 1
+                                )
                               }
-                              disabled={item.quantity <= 1 || loading}
+                              disabled={currentQuantity <= 1 || loading}
                               className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                               aria-label="Decrease quantity"
                             >
                               −
                             </button>
                             <span className="px-3 text-center min-w-[2rem]">
-                              {item.quantity}
+                              {currentQuantity}
                             </span>
                             <button
                               onClick={() =>
-                                handleQuantityChange(item.id, currentQuantity + 1)
+                                handleQuantityChange(
+                                  item.id,
+                                  currentQuantity + 1
+                                )
                               }
-                              disabled={item.quantity >= stock || loading}
+                              disabled={currentQuantity >= stock || loading}
                               className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                               aria-label="Increase quantity"
                             >
@@ -301,7 +305,9 @@ export default function CartSidebar() {
                 <>
                   <span>Checkout</span>
                   <span>•</span>
-                  <span>{currency} {totalPrice.toLocaleString()}</span>
+                  <span>
+                    {currency} {totalPrice.toLocaleString()}
+                  </span>
                 </>
               )}
             </button>

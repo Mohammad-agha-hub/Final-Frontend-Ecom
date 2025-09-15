@@ -14,16 +14,22 @@ type BackendCartItem = {
     image?: string;
     price: number;
     discount?: number;
+    variantCombinations?: {
+      id: string;
+      productId: string;
+      price: number;
+      stock: number;
+      image: string | null;
+      createdAt: string;
+    }[];
   };
-  combination?: {
+  variant?: {
     id: string;
     stock: number;
     price?: number;
-    variants?: {
-      variant: {
-        key: string;
-        value: string;
-      };
+    variants: {
+      key: string;
+      value: string;
     }[];
   };
 };
@@ -55,7 +61,7 @@ type CartItem = {
   color: string | null;
   product: ProductCartItem;
   variant?: VariantSelection;
-
+  stock?: number; // Add stock at item level for easier access
 };
 
 type CartState = {
@@ -79,13 +85,14 @@ type CartState = {
   removeItem: (itemId: string, token: string) => Promise<void>;
   syncCart: (token: string) => Promise<void>;
   clearCart: () => void;
+  getItemStock: (itemId: string) => number | null;
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   loading: false,
   error: null,
-
+  
   fetchCart: async (token) => {
     set({ loading: true, error: null });
     try {
@@ -99,33 +106,44 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (!response.ok) throw new Error("Failed to fetch cart");
 
       const data = await response.json();
-      const items = data.cart?.items?.map((item: BackendCartItem) => ({
-        id: item.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        combinationId: item.combinationId,
-        size: item.size || null,
-        color: item.color || null,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          image: item.product.images?.[0] || item.product.image,
-          price: item.product.price,
-          discount: item.product.discount || 0,
-        },
-        ...(item.combination && {
-          variant: {
-            id: item.combination.id,
-            stock: item.combination.stock,
-            price: item.combination.price,
-            variants:
-              item.combination.variants?.map((v: {variant:{key:string;value:string}}) => ({
-                key: v.variant.key,
-                value: v.variant.value,
-              })) || [],
+      const items = data.cart?.items?.map((item: BackendCartItem) => {
+        // Get stock from variant if available, otherwise try to find from variantCombinations
+        let stock: number | undefined;
+        
+        if (item.variant?.stock !== undefined) {
+          stock = item.variant.stock;
+        } else if (item.combinationId && item.product.variantCombinations) {
+          const combination = item.product.variantCombinations.find(
+            (combo) => combo.id === item.combinationId
+          );
+          stock = combination?.stock;
+        }
+
+        return {
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          combinationId: item.combinationId,
+          size: item.size || null,
+          color: item.color || null,
+          product: {
+            id: item.product.id,
+            name: item.product.name,
+            image: item.product.image || "",
+            price: item.product.price,
+            discount: item.product.discount || 0,
           },
-        }),
-      })) || [];
+          stock, // Add stock at item level
+          ...(item.variant && {
+            variant: {
+              id: item.variant.id,
+              stock: item.variant.stock,
+              price: item.variant.price,
+              variants: item.variant.variants || [],
+            },
+          }),
+        };
+      }) || [];
 
       set({ items });
     } catch (error) {
@@ -159,7 +177,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
       if (!response.ok) throw new Error("Failed to add to cart");
 
-      // ✅ Always fetch full cart from backend after update
+      // Always fetch full cart from backend after update
       await get().fetchCart(token);
     } catch (error) {
       console.error("Add to cart error:", error);
@@ -233,5 +251,11 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearCart: () => {
     set({ items: [] });
+  },
+
+  // Helper method to get stock for a specific cart item
+  getItemStock: (itemId) => {
+    const item = get().items.find((item) => item.id === itemId);
+    return item?.stock ?? item?.variant?.stock ?? null;
   },
 }));

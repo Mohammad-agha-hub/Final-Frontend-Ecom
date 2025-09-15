@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const NavbarWrapper = () => {
   const [products,setProducts]  = useState([])
   const pathname = usePathname();
+  
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`)
       .then(res => res.json())
