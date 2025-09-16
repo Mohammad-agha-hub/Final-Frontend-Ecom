@@ -27,13 +27,11 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
     <div className="flex w-full max-w-[100vw] gap-2 md:gap-5">
       {/* LEFT IMAGE (70%) */}
       <Link
-        href={left.linkUrl || "#"}
+        href={`/products/${left.linkUrl}` || "#"}
         className="relative md:w-[70%] w-[50%] aspect-[3/4] md:aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={
-            left.imageUrl
-          }
+          src={left.imageUrl}
           alt={left.title}
           fill
           sizes="(max-width: 768px) 50vw, 70vw"
@@ -46,13 +44,11 @@ const FourthBanner = ({ banners }: FourthBannerProps) => {
 
       {/* RIGHT IMAGE (30%) */}
       <Link
-        href={right.linkUrl || "#"}
+        href={`/products/${right.linkUrl}` || "#"}
         className="relative w-[50%] md:w-[30%] aspect-[3/3] md:aspect-[6/3] cursor-pointer"
       >
         <Image
-          src={
-            right.imageUrl
-          }
+          src={right.imageUrl}
           alt={right.title}
           fill
           sizes="(max-width: 768px) 50vw, 30vw"

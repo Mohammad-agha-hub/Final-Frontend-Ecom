@@ -27,7 +27,9 @@ const SecondBanner = ({ banners }: SecondBannerProps) => {
         <div
           key={banner.id}
           className="flex flex-col min-w-[250px] sm:min-w-[300px] md:min-w-[400px] flex-1 cursor-pointer"
-          onClick={() => banner.linkUrl && router.push(banner.linkUrl)}
+          onClick={() =>
+            banner.linkUrl && router.push(`/products/${banner.linkUrl}`)
+          }
         >
           {/* Category Label (optional) */}
           <span className="text-center text-xs sm:text-sm md:text-lg mt-2 mb-2 text-gray-500">

@@ -53,40 +53,8 @@ const Footer = () => {
         {/* Column 4 */}
         <div className="flex flex-col gap-2 text-sm">
           <h2 className="text-lg font-semibold text-white">Our Policies</h2>
-          <span className="cursor-pointer">Terms & Conditions</span>
-          <span className="cursor-pointer">Privacy Policy</span>
-          <span className="cursor-pointer">Shipping Policy</span>
-          <span className="cursor-pointer">Cookies Policy</span>
-          <span className="cursor-pointer">Return and Refund Policy</span>
+          
         </div>
-
-        {/* Column 5 */}
-
-        {/* <div className="flex flex-col gap-4 text-sm">
-          <h2 className="text-lg font-semibold text-white">
-            Sign Up To Newsletter
-          </h2>
-          <p>
-            Join 60,000+ subscribers and get a new discount coupon every
-            Saturday.
-          </p>
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Email address..."
-              className="w-full border border-gray-300  py-2 px-3 pr-[6rem] focus:outline-none focus:ring-1 focus:ring-gray lg:text-[10px] md:text-[10px]sm:w-[10rem]"
-            />
-            <button className="absolute right-1 cursor-pointer top-1 bottom-1 bg-orange-400 text-white px-3 text-sm hover:bg-orange-600 lg:px-0.5 lg:text-[10px] transition">
-              SUBSCRIBE
-            </button>
-          </div>
-
-          <p className="text-xs mt-2">
-            By providing your email address, you agree to our Privacy Policy and
-            Terms of Service.
-          </p>
-        </div>
-        */}
       </div>
     </footer>
   );

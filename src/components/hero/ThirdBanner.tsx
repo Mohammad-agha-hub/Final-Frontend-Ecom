@@ -27,7 +27,7 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
     <div className="flex w-full max-w-[100vw] gap-2 md:gap-5 py-2 md:py-6">
       {/* LEFT BANNER (25%) */}
       <Link
-        href={left.linkUrl || "#"}
+        href={`/products/${left.linkUrl}` || "#"}
         className="relative w-[50%] md:w-[25%] aspect-[3/3] md:aspect-[7/3] cursor-pointer"
       >
         <Image
@@ -45,7 +45,7 @@ const ThirdBanner = ({ banners }: ThirdBannerProps) => {
 
       {/* RIGHT BANNER (75%) */}
       <Link
-        href={right.linkUrl || "#"}
+        href={`/products/${right.linkUrl}` || "#"}
         className="relative w-[50%] md:w-[75%] aspect-[6/3] cursor-pointer"
       >
         <Image
