@@ -112,6 +112,7 @@ export default function CartSidebar() {
       setIsSyncing(false);
     }
   };
+  
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -166,6 +167,7 @@ export default function CartSidebar() {
                 let size = item.size || null;
                 let price = item.product.price;
                 const image = item.product.image;
+
                 const currentQuantity =
                   localQuantities[item.id] ?? item.quantity;
                 const stock = item.variant?.stock || 0;
