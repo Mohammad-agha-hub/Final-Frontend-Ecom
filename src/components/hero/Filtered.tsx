@@ -17,6 +17,7 @@ async function fetchProducts(): Promise<Products[]> {
 
 export default async function Filtered() {
   const products = await fetchProducts();
+  const filteredProducts = products.filter(product=>product.category.name === "Women")
 
-  return <ClientSlider initialProducts={products} />;
+  return <ClientSlider initialProducts={filteredProducts} />;
 }

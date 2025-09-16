@@ -12,7 +12,6 @@ export default function Home() {
     <Suspense fallback={<Loading />}>
       <div>
         <CategoryMenu />
-        
         <Filtered />
         <Banner />
       </div>

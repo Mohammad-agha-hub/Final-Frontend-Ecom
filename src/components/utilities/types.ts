@@ -49,8 +49,14 @@ export interface Products {
   slug: string;
   images: ProductImage[];
   image: string;
+  category: Category
 }
 
+interface Category{
+  id:string,
+  name:string,
+  image:string
+}
 export interface Variant {
   variant: {
     key: string;
