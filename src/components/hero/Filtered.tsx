@@ -4,7 +4,7 @@ import { Products } from "../utilities/types";
 
 async function fetchProducts(): Promise<Products[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=1&limit=10`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products?page=1&limit=20`,
     {
       cache: "no-store",
     }
@@ -18,6 +18,5 @@ async function fetchProducts(): Promise<Products[]> {
 export default async function Filtered() {
   const products = await fetchProducts();
   const filteredProducts = products.filter(product=>product.category.name === "Women")
-
   return <ClientSlider initialProducts={filteredProducts} />;
 }
