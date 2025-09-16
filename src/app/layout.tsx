@@ -27,11 +27,11 @@ const poppins = LocalFont({
 
 
 export const metadata: Metadata = {
-  title:{
-    default:"OGAAN Online Design Store",
-    template:"%s - Online Design Store"
+  title: {
+    default: "Kozan Luxe Online Cloth Store",
+    template: "%s - Online Design Store",
   },
-  description: "OGAAN Online Design Store",
+  description: "Kozan Luxe Online Cloth Store",
 };
 
 

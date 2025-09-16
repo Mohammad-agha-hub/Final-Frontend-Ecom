@@ -117,7 +117,7 @@ export default function Navbar({products}:{products:Product[]}) {
           {/* Logo */}
           <Link href="/" className="text-center flex-1 md:flex-none">
             <h1 className="logo text-2xl font-bold tracking-widest text-center">
-              OGAAN
+              Kozan Luxe
             </h1>
           </Link>
 

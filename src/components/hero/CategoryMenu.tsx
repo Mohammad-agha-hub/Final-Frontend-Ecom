@@ -23,7 +23,7 @@ export default async function CategoryMenu() {
 
   // Sort categories here on server
   const order: Record<string, number> = {
-    "Just In": 0,
+    "just-in": 0,
     Women: 1,
     Men: 2,
     Kids: 3,
@@ -45,13 +45,30 @@ export default async function CategoryMenu() {
   }
 
   // Find the "Just In" category
-  const justInCategory = sortedCategories.find((cat) => cat.name === "Just In");
-
+  const justInCategory = sortedCategories.find((cat) => cat.name === "just-in");
+  const saleCategory = sortedCategories.find((cat)=>cat.name === "Sale")
   // Create special grouping for "Just In" category
+    if(saleCategory){
+      const saleTags = sortedCategories
+        .filter((cat) => cat.name !== "Sale" && cat.name !== "just-in")
+        .map((cat) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.name.toLowerCase().replace(/\s+/g, "-"),
+          categoryId: saleCategory.id,
+          children:
+          groupedTags[cat.id]?.map((tag)=>({
+            id:tag.id,
+            name:tag.name,
+            slug:tag.slug
+          })) || []
+        }));
+        groupedTags[saleCategory.id] = saleTags
+    }
   if (justInCategory) {
     // Transform other categories (Women, Men, Kids, Accessories, Sale) into tags for "Just In"
     const justInTags = sortedCategories
-      .filter((cat) => cat.name !== "Just In") // Exclude "Just In" itself
+      .filter((cat) => cat.name !== "just-in" && cat.name !== "Sale") // Exclude "Just In" itself
       .map((cat) => ({
         id: cat.id,
         name: cat.name,

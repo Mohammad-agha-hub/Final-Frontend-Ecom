@@ -121,7 +121,7 @@ const Category = ({
                 cat.name === "Sale" ? "text-[#8d1c1c]" : ""
               } hover:text-gray-500`}
             >
-              {cat.name}
+              {cat.name === "just-in" ? "Just In" : cat.name }
             </span>
             <AnimatePresence>
               {hovered === cat.name && (
