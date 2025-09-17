@@ -41,6 +41,7 @@ interface VariantCombo {
   variants: Record<string, string>;
   price: string;
   stock: string;
+  isNew?: boolean; // Track if this is a new combination
 }
 
 interface Variant {
@@ -81,6 +82,7 @@ export default function VariantFormClient({
         variants: Object.fromEntries(
           vc.variants.map((v) => [v.variant.key, v.variant.value])
         ),
+        isNew: false,
       }))
     );
 
@@ -89,11 +91,14 @@ export default function VariantFormClient({
 
   const addCombo = () => {
     const defaultVariants = Object.fromEntries(
-      Object.keys(variantOptions).map((key) => [key, ""])
+      Object.keys(variantOptions).map((key) => [
+        key,
+        key.toLowerCase() === "color" ? "#000000" : "",
+      ])
     );
     setCombos([
       ...combos,
-      { variants: defaultVariants, price: "0", stock: "0" },
+      { variants: defaultVariants, price: "0", stock: "0", isNew: true },
     ]);
   };
 
@@ -103,7 +108,7 @@ export default function VariantFormClient({
 
   const updateCombo = (
     idx: number,
-    field: keyof Omit<VariantCombo, "variants">,
+    field: keyof Omit<VariantCombo, "variants" | "isNew">,
     value: string
   ) => {
     const updated = [...combos];
@@ -113,17 +118,23 @@ export default function VariantFormClient({
 
   const updateComboVariant = (idx: number, key: string, value: string) => {
     const updated = [...combos];
-    updated[idx].variants[key] = value;
+    updated[idx] = {
+      ...updated[idx],
+      variants: { ...updated[idx].variants, [key]: value },
+    };
     setCombos(updated);
   };
 
   const saveProduct = async () => {
     setSaving(true);
     try {
-      const validCombos = combos
-        .filter((combo) =>
-          Object.values(combo.variants).every((v) => v.trim() !== "")
-        )
+      // Separate existing and new combinations
+      const validCombos = combos.filter((combo) =>
+        Object.values(combo.variants).every((v) => v.trim() !== "")
+      );
+
+      const existingCombos = validCombos
+        .filter((combo) => !combo.isNew && combo.id)
         .map(({ id, variants, price, stock }) => ({
           id,
           variants,
@@ -131,23 +142,81 @@ export default function VariantFormClient({
           stock: Number(stock),
         }));
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/update-combination/${form.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ combinations: validCombos }),
-        }
-      );
+      const newCombos = validCombos
+        .filter((combo) => combo.isNew)
+        .map(({ variants, price, stock }) => ({
+          variants,
+          price: Number(price),
+          stock: Number(stock),
+        }));
 
-      if (!res.ok) toast.error("Failed to save variant combinations");
-      toast.success("Variant Updated Successfully!",{
-        onClose:()=> router.push("/dashboard/view-products")
-      })
-    
+      let updateSuccess = true;
+      let addSuccess = true;
+
+      // Update existing combinations if any
+      if (existingCombos.length > 0) {
+        console.log("Updating existing combinations:", existingCombos);
+        const updateRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/update-combination/${form.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ combinations: existingCombos }),
+          }
+        );
+
+        const updateResult = await updateRes.json();
+        console.log("Update result:", updateResult);
+
+        if (!updateRes.ok || !updateResult.success) {
+          console.error("Update failed:", updateResult);
+          toast.error(
+            `Failed to update existing combinations: ${
+              updateResult.message || "Unknown error"
+            }`
+          );
+          updateSuccess = false;
+        }
+      }
+
+      // Add new combinations if any
+      if (newCombos.length > 0) {
+        console.log("Adding new combinations:", newCombos);
+        const addRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/${form.id}/add-combinations`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ combinations: newCombos }),
+          }
+        );
+
+        const addResult = await addRes.json();
+        console.log("Add result:", addResult);
+
+        if (!addRes.ok || !addResult.success) {
+          console.error("Add failed:", addResult);
+          toast.error(
+            `Failed to add new combinations: ${
+              addResult.message || "Unknown error"
+            }`
+          );
+          addSuccess = false;
+        }
+      }
+
+      // Only show success if both operations succeeded (or weren't needed)
+      if (updateSuccess && addSuccess) {
+        toast.success("Variant Updated Successfully!", {
+          onClose: () => router.push("/dashboard/view-products"),
+        });
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -169,7 +238,7 @@ export default function VariantFormClient({
         }
       );
       if (!res.ok) toast.error("Failed to delete product");
-      toast.success("Deleted Variant Successfully!")
+      toast.success("Deleted Variant Successfully!");
       router.push("/dashboard/view-products");
     } catch (e) {
       toast.error((e as Error).message);
@@ -200,7 +269,19 @@ export default function VariantFormClient({
         {combos.map((combo, idx) => (
           <Card key={idx} className="mb-4">
             <CardHeader className="flex flex-row justify-between items-center">
-              <CardTitle>Variant {idx + 1}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Variant {idx + 1}
+                {combo.isNew && (
+                  <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
+                    New
+                  </span>
+                )}
+                {!combo.isNew && combo.id && (
+                  <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                    Existing
+                  </span>
+                )}
+              </CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
