@@ -13,12 +13,17 @@ const FiCheck = dynamic(() =>
   import("react-icons/fi").then((mod) => mod.FiCheck)
 );
 
-type ProductRow = Record<string, string | number | boolean | null>;
+type ImportResult = {
+  message: string;
+  processed: number;
+  skipped: number;
+  total: number;
+};
 
 export default function ProductImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [previewData, setPreviewData] = useState<ProductRow[]>([]);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const { data: session } = useSession();
 
   const lazyToast = async (type: "success" | "error", message: string) => {
@@ -37,37 +42,16 @@ export default function ProductImportPage() {
       }
 
       setFile(selectedFile);
-      previewFile(selectedFile);
+      setImportResult(null); // Clear previous results
     }
-  };
-
-  const previewFile = async (file: File) => {
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-      try {
-        const data = e.target?.result;
-        if (data) {
-          const XLSX = await import("xlsx");
-          const workbook = XLSX.read(data, { type: "binary" });
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          const jsonData: ProductRow[] = XLSX.utils.sheet_to_json(sheet);
-          setPreviewData(jsonData.slice(0, 5));
-        }
-      } catch (error) {
-        console.error("Preview error:", error);
-        lazyToast("error", "Failed to preview file");
-      }
-    };
-
-    reader.readAsBinaryString(file);
   };
 
   const handleSubmit = async () => {
     if (!file || !session) return;
 
     setIsLoading(true);
+    setImportResult(null);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -89,12 +73,20 @@ export default function ProductImportPage() {
         throw new Error(data.message || "Import failed");
       }
 
+      // Handle the updated response format
+      setImportResult({
+        message: data.message,
+        processed: data.processed || 0,
+        skipped: data.skipped || 0,
+        total: data.total || 0,
+      });
+
       await lazyToast(
         "success",
-        `Successfully imported ${data.data?.length || 0} products!`
+        `Import completed! Processed: ${data.processed || 0}, Skipped: ${
+          data.skipped || 0
+        }`
       );
-      setFile(null);
-      setPreviewData([]);
     } catch (error) {
       console.error("Import error:", error);
       await lazyToast(
@@ -108,8 +100,14 @@ export default function ProductImportPage() {
 
   const handleCancel = () => {
     setFile(null);
-    setPreviewData([]);
+    setImportResult(null);
   };
+
+  const handleStartNew = () => {
+    setFile(null);
+    setImportResult(null);
+  };
+
   if (!session || session.user.isAdmin !== true) {
     return (
       <div className="text-center text-destructive mt-10 text-lg font-semibold">
@@ -117,93 +115,109 @@ export default function ProductImportPage() {
       </div>
     );
   }
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow w-full">
+    <div className="bg-white p-6 rounded-lg shadow w-full max-w-4xl mx-auto">
       <h2 className="text-xl font-bold mb-6">Import Products</h2>
+
+      {/* Import Results */}
+      {importResult && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+          <h3 className="font-medium text-green-800 mb-2">Import Results</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="text-center p-2 bg-white rounded">
+              <div className="text-2xl font-bold text-green-600">
+                {importResult.processed}
+              </div>
+              <div className="text-gray-600">Processed</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded">
+              <div className="text-2xl font-bold text-yellow-600">
+                {importResult.skipped}
+              </div>
+              <div className="text-gray-600">Skipped</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded">
+              <div className="text-2xl font-bold text-blue-600">
+                {importResult.total}
+              </div>
+              <div className="text-gray-600">Total</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={handleStartNew}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Import Another File
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
         {!file ? (
           <label className="cursor-pointer">
-            <div className="flex flex-col items-center justify-center gap-2">
-              <FiUpload className="text-3xl text-gray-400" />
-              <p className="font-medium">Upload Excel/CSV File</p>
-              <p className="text-sm text-gray-500">
-                Supports .xlsx, .xls, .csv formats
-              </p>
+            <div className="flex flex-col items-center justify-center gap-4">
+              <FiUpload className="text-4xl text-gray-400" />
+              <div>
+                <p className="font-medium text-lg">Upload Excel/CSV File</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Supports .xlsx, .xls, .csv formats
+                </p>
+              </div>
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
                 onChange={handleFileChange}
                 className="hidden"
               />
+              <div className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Choose File
+              </div>
             </div>
           </label>
         ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-md">
+              <div className="text-left">
                 <p className="font-medium">{file.name}</p>
                 <p className="text-sm text-gray-500">
-                  {(file.size / 1024).toFixed(2)} KB
+                  Size: {(file.size / 1024).toFixed(2)} KB
                 </p>
               </div>
               <button
                 onClick={handleCancel}
-                className="text-red-600 hover:text-red-800"
+                disabled={isLoading}
+                className="text-red-600 hover:text-red-800 p-2 disabled:opacity-50"
+                title="Remove file"
               >
-                <FiX />
+                <FiX size={20} />
               </button>
             </div>
 
-            {previewData.length > 0 && (
-              <div className="overflow-x-auto">
-                <h3 className="text-sm font-medium mb-2">
-                  Preview (first 5 rows):
-                </h3>
-                <table className="min-w-full border">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      {Object.keys(previewData[0]).map((key) => (
-                        <th key={key} className="px-4 py-2 text-left text-sm">
-                          {key}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((row, i) => (
-                      <tr key={i} className="border-t">
-                        {Object.values(row).map((value, j) => (
-                          <td key={j} className="px-4 py-2 text-sm">
-                            {String(value)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-center gap-3">
               <button
                 onClick={handleCancel}
                 disabled={isLoading}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                className="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+                className={`px-6 py-3 rounded-md flex items-center gap-2 transition-colors ${
                   isLoading
-                    ? "bg-gray-300 text-gray-500"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-green-600 text-white hover:bg-green-700"
                 }`}
               >
                 {isLoading ? (
-                  "Importing..."
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Importing...
+                  </>
                 ) : (
                   <>
                     <FiCheck /> Import Products
@@ -215,19 +229,65 @@ export default function ProductImportPage() {
         )}
       </div>
 
+      {/* File Format Guide */}
       <div className="mt-6 p-4 bg-blue-50 rounded-md">
-        <h3 className="font-medium mb-2">File Format Requirements:</h3>
-        <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-          <li>First row should contain column headers</li>
-          <li>
-            Supported columns:{" "}
-            <code>
-              name, price, images, description, category, tags and children tags, variant combinations
+        <h3 className="font-medium mb-3">File Format Requirements:</h3>
+        <div className="space-y-2 text-sm text-gray-700">
+          <div>
+            <strong>Required columns:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              name, price, category
             </code>
-          </li>
-          <li>Multiple tags should be comma-separated</li>
-          <li>Price and discount should be numbers</li>
-        </ul>
+          </div>
+
+          <div>
+            <strong>Optional columns:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              description, discount, stock, mainImage, additionalImages
+            </code>
+          </div>
+
+          <div>
+            <strong>Tags format:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              Jewelry/Necklace,Electronics/Smartphones
+            </code>
+          </div>
+
+          <div>
+            <strong>Variants format:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              Size:M,Color:#e1b209|Size:L,Color:#000000
+            </code>
+          </div>
+
+          <div>
+            <strong>Variant stock:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              20|15 (corresponds to each variant combination)
+            </code>
+          </div>
+
+          <div>
+            <strong>Variant prices:</strong>
+            <code className="ml-2 px-2 py-1 bg-white rounded">
+              3000|3200 (optional, uses main price if not specified)
+            </code>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-white rounded border-l-4 border-blue-400">
+          <p className="text-sm font-medium text-blue-800">Tips:</p>
+          <ul className="text-xs text-blue-700 mt-1 space-y-1">
+            <li>• First row must contain column headers</li>
+            <li>
+              • Use comma (,) to separate multiple items in the same field
+            </li>
+            <li>• Use pipe (|) to separate different variant combinations</li>
+            <li>• Invalid images will be skipped but wont stop the import</li>
+            <li>• Products with missing names will be skipped</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
